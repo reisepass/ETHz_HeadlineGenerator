@@ -19,19 +19,66 @@ import edu.stanford.nlp.trees.semgraph.SemanticGraph;
 import edu.stanford.nlp.trees.semgraph.SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation;
 import edu.stanford.nlp.util.CoreMap;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
+import java.io.File;
+ 
 
 public class main {
-
 	
-	public void nlpTest(){
+	public Doc fileRead(String fileName){
+		try {
+			 
+			File fXmlFile = new File(fileName);
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(fXmlFile);
+		 
+			//optional, but recommended
+			//read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
+			doc.getDocumentElement().normalize();
+		 
+			//System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
+		 
+			NodeList main = doc.getElementsByTagName(doc.getDocumentElement().getNodeName());
+			NodeList docno = doc.getElementsByTagName("DOCNO");
+			NodeList docTy = doc.getElementsByTagName("DOCTYPE");
+			NodeList type  = doc.getElementsByTagName("TXTTYPE");
+			NodeList text  = doc.getElementsByTagName("TEXT");
+			;
+			Doc inputDoc = new Doc(docno.item(0).getTextContent(),docTy.item(0).getTextContent(),type.item(0).getTextContent(),text.item(0).getTextContent());
+			
+			//System.out.println("Checking text content of doc:\n\n"+inputDoc.toString());
+		 
+			
+			return inputDoc;
+		    } catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		    }
+		  }
+	
+	
+		
+	
+	
+	public main() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+	
+	public Annotation nlpTest(String data){
 		// creates a StanfordCoreNLP object, with POS tagging, lemmatization, NER, parsing, and coreference resolution 
 	    Properties props = new Properties();
 	    props.put("annotators", "tokenize, ssplit, pos, lemma, ner, parse, dcoref");
 	    StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
 	    
 	    // read some text in the text variable
-	    String text = "Stanford CoreNLP provides a set of natural language analysis tools which can take raw English language text input and give the base forms of words, their parts of speech, whether they are names of companies, people, etc., normalize dates, times, and numeric quantities, and mark up the structure of sentences in terms of phrases and word dependencies, and indicate which noun phrases refer to the same entities. Stanford CoreNLP is an integrated framework, which make it very easy to apply a bunch of language analysis tools to a piece of text. Starting from plain text, you can run all the tools on it with just two lines of code. Its analyses provide the foundational building blocks for higher-level and domain-specific text understanding applications.";
-	    
+	    String text = data;
 	    
 	    // create an empty Annotation just with the given text
 	    Annotation document = new Annotation(text);
@@ -62,6 +109,7 @@ public class main {
 
 	      // this is the Stanford dependency graph of the current sentence
 	      SemanticGraph dependencies = sentence.get(CollapsedCCProcessedDependenciesAnnotation.class);
+	      int a =1+1; 
 	    }
 
 	    // This is the coreference link graph
@@ -70,21 +118,33 @@ public class main {
 	    // Both sentence and token offsets start at 1!
 	    Map<Integer, CorefChain> graph = 
 	      document.get(CorefChainAnnotation.class);
+	    
+	    return document;
 	}
 	
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		// Testing some stuff
+		// Just gonna mess around in here for a while
 		main t = new main();
-		t.nlpTest();
+		
+		//TODO parameterize this with input form args ^
+		Doc test=t.fileRead("APW19981022.0269");
+		t.nlpTest(test.cont);
+		
+		Properties props = new Properties();
+	    props.put("annotators", "tokenize, ssplit, pos, lemma, ner, parse, dcoref");
+	    StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+	    String text = test.cont;
+	    Annotation document = new Annotation(text);
+	    pipeline.annotate(document);
+		Extractor feat=new Extractor(document);
+		feat.runAll();
+		int a = 1+1;
+		
 	}
 
-	public main() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
+	
 
 }
