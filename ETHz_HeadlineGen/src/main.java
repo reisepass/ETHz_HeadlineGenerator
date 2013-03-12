@@ -141,6 +141,7 @@ public class main {
 	    pipeline.annotate(document);
 		Extractor feat=new Extractor(document);
 		feat.runAll();
+	
 		int a = 1+1;
 		
 	}

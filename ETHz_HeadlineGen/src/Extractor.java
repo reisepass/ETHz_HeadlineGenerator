@@ -2,6 +2,8 @@
 
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,18 +53,87 @@ public class Extractor {
 	
 	private Annotation document;
 	private Map<String,Integer> posTagCounts;
+	private Map<String,Integer> nameEntityCounts;
 	private Map<String,Integer> nameEntityTypeCounts;
 	private Map<String,Integer> wordCounts;
  	public Extractor (Annotation preAnnotatedDoc){
 		
 		document = preAnnotatedDoc;
+		Map<String,Integer> nameEntityCounts=null;
 		
 	}
 	
+
 	public void runAll(){
-		posTagCount();
-		nameEntityTypeCount();
-		wordCount();
+		//posTagCount();
+		//nameEntityTypeCount(); 
+		//wordCount();
+		
+		
+		Map<String,Integer> posCount=new HashMap<String,Integer> ();
+		Map<String,Integer> words=new HashMap<String,Integer> ();
+		Map<String,Integer> nameCount=new HashMap<String,Integer> ();
+		
+		
+		List<CoreMap> sentences = document.get(SentencesAnnotation.class);
+	    for(CoreMap sentence: sentences) {
+	      // traversing the words in the current sentence
+	      // a CoreLabel is a CoreMap with additional token-specific methods
+	    	String lastType="";
+	    	String lastWord="";
+	      for (CoreLabel token: sentence.get(TokensAnnotation.class)) {
+	        // this is the text of the token
+	    	String ne = token.get(NamedEntityTagAnnotation.class);       
+	    	  
+	    	String pos = token.get(PartOfSpeechAnnotation.class);
+	        if(posCount.get(pos)==null){
+	        	posCount.put(pos,1);
+	        }
+	        else
+	        	posCount.put(pos, posCount.get(pos)+1);
+	        
+	        String wrd = token.get(TextAnnotation.class);
+	        if(words.get(wrd)==null){
+	        	words.put(wrd,1);
+	        }
+	        else
+	        	words.put(wrd, words.get(wrd)+1);
+	    	  
+	    	  
+	    	  if(lastType.equals("PERSON")||lastType.equals("MISC")||lastType.equals("LOCATION")||lastType.equals("ORGANIZATION")){
+	    		  if(ne.equals("PERSON")||ne.equals("MISC")||ne.equals("LOCATION")||ne.equals("ORGANIZATION")){
+	    			  String word = token.get(TextAnnotation.class);
+	    			  lastWord=lastWord+" "+wrd;
+	    			  
+	    		  }
+	    		  else{
+	    			  
+			  	        if(nameCount.get(lastWord)==null){
+			  	        	nameCount.put(lastWord,1);
+			  	        }
+			  	        else
+			  	        	nameCount.put(lastWord, nameCount.get(lastWord)+1);
+			  	      lastWord=wrd;
+			  	      lastType=ne;
+		    	}
+	    	  }
+	    	  else{
+	    		  lastWord=wrd;
+	    		  lastType=ne;
+	    	  }
+	    	  //I assume that every document ends with a period. Periods are not named entities and hence will triger the else 
+	    	  // to enter in the last named entity into the hash table, if it happens to be 
+	   
+	      }
+
+	    }
+		
+		
+		
+	    nameEntityCounts=nameCount; //Save locally in case we runAll and want to retrieve them differently
+	    wordCounts=words;
+	    posTagCounts=posCount;
+		
 	
 	}
 	
@@ -120,7 +191,20 @@ public class Extractor {
 		return words;
 	}
 	
+	
+	/*
+	 * 
+	 * Currently this class counts words like New York as 2 seperate things, Even tho 
+	 * the framework knows they are to gather. Have not found out where that information
+	 * is sitting. 
+	 * 
+	 * ????? Is it safe to assume that if there are n words in a row with the same 
+	 * NE type tag then all n words are actually part of 1 long word. 
+	 */
 	public Map<String,Integer> nameEntityTypeCount(){
+		
+		
+		
 		Map<String,Integer> nameCount=new HashMap<String,Integer> ();
 		
 		
@@ -129,27 +213,33 @@ public class Extractor {
 	    for(CoreMap sentence: sentences) {
 	      // traversing the words in the current sentence
 	      // a CoreLabel is a CoreMap with additional token-specific methods
+	    	String lastType="";
+	    	String lastWord="";
 	      for (CoreLabel token: sentence.get(TokensAnnotation.class)) {
 	        // this is the text of the token
 	    	  String ne = token.get(NamedEntityTagAnnotation.class);       
 	    	  
-	    	  if(token.get(TextAnnotation.class).equals("Cambodia")){
-	    		 int a=1+1;
+	    	  
+	    	  if(lastType.equals("PERSON")||lastType.equals("MISC")||lastType.equals("LOCATION")||lastType.equals("ORGANIZATION")){
+	    		  if(ne.equals("PERSON")||ne.equals("MISC")||ne.equals("LOCATION")||ne.equals("ORGANIZATION")){
+	    			  String word = token.get(TextAnnotation.class);
+	    			  lastWord=lastWord+" "+word;
+	    			  continue;
+	    		  }
+	    		  else{
+	    			  
+			  	        if(nameCount.get(lastWord)==null){
+			  	        	nameCount.put(lastWord,1);
+			  	        }
+			  	        else
+			  	        	nameCount.put(lastWord, nameCount.get(lastWord)+1);
+			  	      continue;
+		    	}
 	    	  }
-	    	  
-	    	  
-	    	  if(ne.equals("PERSON")||ne.equals("MISC")||ne.equals("LOCATION")||ne.equals("ORGANIZATION")){
-	    		String word = token.get(TextAnnotation.class);
-	  	        if(nameCount.get(word)==null){
-	  	        	nameCount.put(word,1);
-	  	        }
-	  	        else
-	  	        	nameCount.put(word, nameCount.get(word)+1);
-	  	      
-	    		  
+	    	  else{
 	    		  
 	    	  }
-	    	  
+	   
 	      }
 
 	    }
