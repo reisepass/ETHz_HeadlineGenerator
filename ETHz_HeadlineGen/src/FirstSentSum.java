@@ -15,6 +15,7 @@ public class FirstSentSum implements Summerizer {
 	public String summary() {
 		// String firstSentence =
 		// TODO Auto-generated method stub
+		//Jared is the best
 		return null;
 	}
 
