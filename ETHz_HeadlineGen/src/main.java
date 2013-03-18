@@ -127,20 +127,28 @@ public class main {
 	 */
 	public static void main(String[] args) {
 		// Just gonna mess around in here for a while
+		int maxSummaryLength=100;  // in characters	 //TODO should be retrieved from args	
 		main t = new main();
+		
 		
 		//TODO parameterize this with input form args ^
 		Doc test=t.fileRead("APW19981022.0269");
 		t.nlpTest(test.cont);
 		
+		
+		
+		
 		Properties props = new Properties();
-	    props.put("annotators", "tokenize, ssplit, pos, lemma, ner, parse, dcoref");
+	    //props.put("annotators", "tokenize, ssplit, pos, lemma, ner, parse, dcoref");
+		props.put("annotators", "tokenize, ssplit, pos");
 	    StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
 	    String text = test.cont;
 	    Annotation document = new Annotation(text);
 	    pipeline.annotate(document);
 		Extractor feat=new Extractor(document);
 		feat.runAll();
+		
+		Summerizer naiveSumm = new FirstSentSum(test,document,maxSummaryLength);
 	
 		int a = 1+1;
 		

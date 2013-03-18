@@ -2,16 +2,20 @@ import java.util.List;
 
 import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
+import java.util.List;
+
+import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.util.CoreMap;
 import java.lang.annotation.AnnotationFormatError;
+import edu.stanford.nlp.util.CoreMap;
 
 public class FirstSentSum implements Summerizer {
 	private Doc doc;
 	private Annotation anot;
 	private int sumLeng;
 	private byte TEST_VARIABLE;
-
+    private String firstSent;
 	public FirstSentSum(Doc doc, Annotation anot, int summaryLength) {
 		this.doc = doc;
 		this.anot = anot;
@@ -20,12 +24,15 @@ public class FirstSentSum implements Summerizer {
 
 	@Override
 	public String summary() {
-		// String firstSentence =
+		CoreMap firstSentence = getFirstSent();
 		// TODO Auto-generated method stub
 		// Jared is the best
 		return null;
 	}
-
+	private CoreMap getFirstSent(){
+		CoreMap sentence = anot.get(SentencesAnnotation.class).get(0);
+		return sentence;
+	}
 	// Get rid of words that don't fit at the beginning or end of the sentence
 	private void trimSentenceEnds_JARED_BENJAMIN_NIEDERHAUSER(CoreMap sentence) {
 		List<CoreLabel> tokens = sentence.get(TokensAnnotation.class);
