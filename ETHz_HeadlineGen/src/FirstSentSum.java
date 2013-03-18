@@ -1,10 +1,14 @@
+import java.util.List;
+
+import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
 import edu.stanford.nlp.pipeline.Annotation;
+import edu.stanford.nlp.util.CoreMap;
 
 public class FirstSentSum implements Summerizer {
 	private Doc doc;
 	private Annotation anot;
 	private int sumLeng;
-	private String derp;
+    private String firstSent;
 	public FirstSentSum(Doc doc, Annotation anot, int summaryLength) {
 		this.doc = doc;
 		this.anot = anot;
@@ -13,18 +17,15 @@ public class FirstSentSum implements Summerizer {
 
 	@Override
 	public String summary() {
-		// String firstSentence =
+		CoreMap firstSentence = getFirstSent();
 		// TODO Auto-generated method stub
-		
-		derp = derp+" herp";
+		//Jared is the best
 		return null;
 	}
-	
-	public String trimPastComma(String inp){
-			return "";
-		
+	private CoreMap getFirstSent(){
+		CoreMap sentence = anot.get(SentencesAnnotation.class).get(0);
+		return sentence;
 	}
-
 	public void test() {
 
 	}
