@@ -1,3 +1,7 @@
+package ethz.nlp.headgen;
+
+import ethz.nlp.headgen.sum.Summerizer;
+
 public class Doc implements Summerizer {
 
 	public Doc(String docno, String docType, String textType, String cont) {

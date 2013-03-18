@@ -1,3 +1,4 @@
+package ethz.nlp.headgen.sum;
 import java.util.List;
 
 import edu.stanford.nlp.ling.CoreAnnotations.PartOfSpeechAnnotation;
@@ -6,6 +7,7 @@ import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.util.CoreMap;
+import ethz.nlp.headgen.Doc;
 
 public class FirstSentSum implements Summerizer {
 	private static final String[] START_POS = { "NNP", "NN" };
