@@ -17,5 +17,10 @@ public class FirstSentSum implements Summerizer {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	public String trimPastComma(String inp){
+			return "";
+		
+	}
 
 }
