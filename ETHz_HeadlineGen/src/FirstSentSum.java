@@ -10,7 +10,7 @@ import edu.stanford.nlp.util.CoreMap;
 public class FirstSentSum implements Summerizer {
 	private static final String[] START_POS = { "NNP", "NN" };
 	private static final String[] END_POS = { "NNP", "NN" };
-
+	
 	private Doc doc;
 	private Annotation anot;
 	private int sumLeng;
