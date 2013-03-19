@@ -11,6 +11,10 @@ import org.w3c.dom.NodeList;
 import ethz.nlp.headgen.Doc;
 
 public class XMLDoc {
+	public static Doc readXML(String f) {
+		return readXML(new File(f));
+	}
+	
 	public static Doc readXML(File f) {
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory
