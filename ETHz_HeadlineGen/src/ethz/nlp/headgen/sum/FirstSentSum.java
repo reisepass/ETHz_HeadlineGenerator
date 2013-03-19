@@ -1,4 +1,5 @@
 package ethz.nlp.headgen.sum;
+
 import java.util.List;
 
 import edu.stanford.nlp.ling.CoreAnnotations.PartOfSpeechAnnotation;
@@ -66,7 +67,7 @@ public class FirstSentSum implements Summerizer {
 
 			for (String s : END_POS) {
 				if (s.equals(pos)) {
-					return; // Suitable starting token found
+					return; // Suitable ending token found
 				}
 			}
 

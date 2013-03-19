@@ -1,16 +1,9 @@
 package ethz.nlp.headgen;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
 
 import edu.stanford.nlp.dcoref.CorefChain;
 import edu.stanford.nlp.dcoref.CorefCoreAnnotations.CorefChainAnnotation;
@@ -27,52 +20,16 @@ import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation;
 import edu.stanford.nlp.trees.semgraph.SemanticGraph;
 import edu.stanford.nlp.trees.semgraph.SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation;
 import edu.stanford.nlp.util.CoreMap;
+import ethz.nlp.headgen.io.DocReader;
+import ethz.nlp.headgen.io.IOConfig;
 import ethz.nlp.headgen.sum.FirstSentSum;
 import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.util.ConfigFactory;
+import ethz.nlp.headgen.xml.XMLDoc;
 
 public class main {
-
-	public Doc fileRead(String fileName) {
-		try {
-
-			File fXmlFile = new File(fileName);
-			DocumentBuilderFactory dbFactory = DocumentBuilderFactory
-					.newInstance();
-			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			Document doc = dBuilder.parse(fXmlFile);
-
-			// optional, but recommended
-			// read this -
-			// http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
-			doc.getDocumentElement().normalize();
-
-			// System.out.println("Root element :" +
-			// doc.getDocumentElement().getNodeName());
-
-			NodeList main = doc.getElementsByTagName(doc.getDocumentElement()
-					.getNodeName());
-			NodeList docno = doc.getElementsByTagName("DOCNO");
-			NodeList docTy = doc.getElementsByTagName("DOCTYPE");
-			NodeList type = doc.getElementsByTagName("TXTTYPE");
-			NodeList text = doc.getElementsByTagName("TEXT");
-			;
-			Doc inputDoc = new Doc(docno.item(0).getTextContent(), docTy
-					.item(0).getTextContent(), type.item(0).getTextContent(),
-					text.item(0).getTextContent());
-
-			// System.out.println("Checking text content of doc:\n\n"+inputDoc.toString());
-
-			return inputDoc;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
 	public main() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public Annotation nlpTest(String data) {
@@ -138,15 +95,23 @@ public class main {
 	public static void main(String[] args) throws IOException {
 		Config conf = ConfigFactory.loadConfiguration(Config.class,
 				Config.DEFAULT);
+		IOConfig ioConf = ConfigFactory.loadConfiguration(IOConfig.class,
+				IOConfig.DEFAULT);
+
+		List<Annotation> parsedDocs;
+		if ("parsed".equals(conf.getDocType())) {
+			DocReader reader = new DocReader(ioConf.getParsedDir());
+			parsedDocs = reader.readAll();
+		} else {
+			// Work with raw documents
+		}
+		// TODO: Generate doc summaries here
 
 		// Just gonna mess around in here for a while
 		int maxSummaryLength = 100; // in characters //TODO should be retrieved
 									// from args
-		main t = new main();
 
-		// TODO parameterize this with input form args ^
-		Doc test = t.fileRead("APW19981022.0269");
-		// t.nlpTest(test.cont);
+		Doc test = XMLDoc.readXML("APW19981022.0269");
 
 		Properties props = new Properties();
 		props.put("annotators", conf.getAnnotators());
