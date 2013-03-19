@@ -1,3 +1,4 @@
+package ethz.nlp.headgen.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

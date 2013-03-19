@@ -1,3 +1,5 @@
+package ethz.nlp.headgen;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -25,9 +27,11 @@ import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation;
 import edu.stanford.nlp.trees.semgraph.SemanticGraph;
 import edu.stanford.nlp.trees.semgraph.SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation;
 import edu.stanford.nlp.util.CoreMap;
+import ethz.nlp.headgen.sum.FirstSentSum;
+import ethz.nlp.headgen.sum.Summerizer;
+import ethz.nlp.headgen.util.ConfigFactory;
 
 public class main {
-	private static final String DEFAULT_CONF = "conf/default.conf";
 
 	public Doc fileRead(String fileName) {
 		try {
@@ -133,7 +137,7 @@ public class main {
 	 */
 	public static void main(String[] args) throws IOException {
 		Config conf = ConfigFactory.loadConfiguration(Config.class,
-				DEFAULT_CONF);
+				Config.DEFAULT);
 
 		// Just gonna mess around in here for a while
 		int maxSummaryLength = 100; // in characters //TODO should be retrieved
