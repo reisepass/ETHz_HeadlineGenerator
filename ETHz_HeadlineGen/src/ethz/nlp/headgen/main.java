@@ -110,9 +110,9 @@ public class main {
 		// Just gonna mess around in here for a while
 		int maxSummaryLength = 100; // in characters //TODO should be retrieved
 									// from args
-
-		Doc test = XMLDoc.readXML("APW19981022.0269");
-
+		
+		Doc test = XMLDoc.readXML("data/raw/APW19981016.0240");
+		/*
 		Properties props = new Properties();
 		props.put("annotators", conf.getAnnotators());
 		StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
@@ -122,8 +122,12 @@ public class main {
 		Extractor feat = new Extractor(document);
 		feat.runAll();
 
-		Summerizer naiveSumm = new FirstSentSum(test, document,
-				maxSummaryLength);
+		*/
+		
+		DocReader readFile = new DocReader("data/parsed/");
+		Annotation document = readFile.read("APW19981016.0240.parsed");
+		Summerizer naiveSum = new FirstSentSum(test, document,maxSummaryLength);
+		System.out.println("Summary: "+naiveSum.summary());
 
 		int a = 1 + 1;
 

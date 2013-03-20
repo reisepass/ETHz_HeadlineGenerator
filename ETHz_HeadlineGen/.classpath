@@ -8,5 +8,6 @@
 	<classpathentry kind="lib" path="lib/stanford-corenlp-1.3.4-models.jar"/>
 	<classpathentry kind="lib" path="lib/stanford-corenlp-1.3.4.jar"/>
 	<classpathentry kind="lib" path="lib/xom.jar"/>
+	<classpathentry kind="lib" path="lib/lingpipe-4.1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
