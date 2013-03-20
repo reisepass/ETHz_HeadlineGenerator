@@ -98,46 +98,51 @@ public class main {
 		IOConfig ioConf = ConfigFactory.loadConfiguration(IOConfig.class,
 				IOConfig.DEFAULT);
 
-		List<Annotation> parsedDocs;
+		Annotation parsedDoc;
 		if ("parsed".equals(conf.getDocType())) {
 			DocReader reader = new DocReader(ioConf.getParsedDir());
-			parsedDocs = reader.readAll();
+			parsedDoc = reader.read("APW19981116.0205.parsed");
+			Doc test2 = XMLDoc.readXML("data/raw/APW19981116.0205");
+
+			FirstSentSum naiveSum2 = new FirstSentSum(test2, parsedDoc,
+					test2.cont.length());
+			String sum = naiveSum2.summary();
+
+			System.out.println("Before :"
+					+ test2.cont.substring(0, test2.cont.indexOf(".")));
+			System.out.println("Summary: " + sum);
 		} else {
-			// Work with raw documents
+			// TODO: Generate doc summaries here
+
+			// Just gonna mess around in here for a while
+			int maxSummaryLength = 100; // in characters //TODO should be
+										// retrieved
+										// from args
+
+			// Doc test = XMLDoc.readXML("data/raw/APW19981016.0240");
+			Doc test2 = XMLDoc.readXML("data/raw/APW19981116.0205");
+			/*
+			 * Properties props = new Properties(); props.put("annotators",
+			 * conf.getAnnotators()); StanfordCoreNLP pipeline = new
+			 * StanfordCoreNLP(props); String text = test.cont; Annotation
+			 * document = new Annotation(text); pipeline.annotate(document);
+			 * Extractor feat = new Extractor(document); feat.runAll();
+			 */
+
+			DocReader readFile = new DocReader("data/parsed/");
+			// Annotation document = readFile.read("APW19981016.0240.parsed");
+			Annotation document2 = readFile.read("APW19981116.0205.parsed");
+			// Summerizer naiveSum = new FirstSentSum(test,
+			// document,maxSummaryLength);
+			// System.out.println("Summary: "+naiveSum.summary());
+
+			FirstSentSum naiveSum2 = new FirstSentSum(test2, document2,
+					maxSummaryLength);
+			System.out.println("FirstSent was: " + naiveSum2.getFirstSent());
+			System.out.println("Summary2: " + naiveSum2.summary());
+
+			int a = 1 + 1;
 		}
-		// TODO: Generate doc summaries here
-
-		// Just gonna mess around in here for a while
-		int maxSummaryLength = 100; // in characters //TODO should be retrieved
-									// from args
-		
-		//Doc test = XMLDoc.readXML("data/raw/APW19981016.0240");
-		Doc test2 = XMLDoc.readXML("data/raw/APW19981116.0205");
-		/*
-		Properties props = new Properties();
-		props.put("annotators", conf.getAnnotators());
-		StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-		String text = test.cont;
-		Annotation document = new Annotation(text);
-		pipeline.annotate(document);
-		Extractor feat = new Extractor(document);
-		feat.runAll();
-
-		*/
-		
-		DocReader readFile = new DocReader("data/parsed/");
-		//Annotation document = readFile.read("APW19981016.0240.parsed");
-		Annotation document2 = readFile.read("APW19981116.0205.parsed");
-		//Summerizer naiveSum = new FirstSentSum(test, document,maxSummaryLength);
-		//System.out.println("Summary: "+naiveSum.summary());
-		
-		FirstSentSum naiveSum2 = new FirstSentSum(test2, document2,maxSummaryLength);
-		System.out.println("FirstSent was: "+naiveSum2.getFirstSent());
-		System.out.println("Summary2: "+naiveSum2.summary());
-		
-
-		int a = 1 + 1;
-
 	}
 
 }

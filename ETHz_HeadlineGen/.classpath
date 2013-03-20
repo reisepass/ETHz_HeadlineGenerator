@@ -4,9 +4,12 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="lib/joda-time.jar"/>
 	<classpathentry kind="lib" path="lib/jollyday.jar"/>
-	<classpathentry kind="lib" path="lib/stanford-corenlp-1.3.4-javadoc.jar"/>
 	<classpathentry kind="lib" path="lib/stanford-corenlp-1.3.4-models.jar"/>
-	<classpathentry kind="lib" path="lib/stanford-corenlp-1.3.4.jar"/>
+	<classpathentry kind="lib" path="lib/stanford-corenlp-1.3.4.jar" sourcepath="lib/stanford-corenlp-1.3.4-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/ETHz_HeadlineGen/lib/stanford-corenlp-1.3.4-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="lib/xom.jar"/>
 	<classpathentry kind="lib" path="lib/lingpipe-4.1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
