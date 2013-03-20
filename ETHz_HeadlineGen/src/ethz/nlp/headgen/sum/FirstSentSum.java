@@ -123,15 +123,20 @@ public class FirstSentSum implements Summerizer {
 		boolean dependOn = false;
 		for (int i = 0; i < tokens.size(); i++) {
 			String pos = tokens.get(i).get(PartOfSpeechAnnotation.class);
-
+			String debugTxt=tokens.get(i).get(TextAnnotation.class);
 			if (pos.equals(",")) {
 				dependOn = !dependOn;
 				tokens.remove(i);
+				i--;
 			} else if (pos.equals(".")) {
 				dependOn = !dependOn;
 			} else {
-				if (dependOn)
-					tokens.remove(i);
+				if (dependOn){
+				tokens.remove(i);
+				i--;
+				}
+					
+					
 			}
 
 			// Remove the last token
