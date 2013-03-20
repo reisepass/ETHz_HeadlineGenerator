@@ -29,10 +29,13 @@ public class FirstSentSum implements Summerizer {
 
 	@Override
 	public String summary() {
-		CoreMap firstSentence = getFirstSent();
+		CoreMap firstSentence = findFirstSent();
 		trimSentenceEnds(firstSentence);
 		trimUseless(firstSentence.get(TokensAnnotation.class));
 		removeInternalDependentClause(firstSentence.get(TokensAnnotation.class));
+		List<CoreLabel> debugTokens = firstSentence.get(TokensAnnotation.class);
+		//firstSentence.set(TokensAnnotation.class, outTest);
+		// you can undo this stuff i was just testing things 
 		
 		
 		// TODO Auto-generated method stub
@@ -40,10 +43,19 @@ public class FirstSentSum implements Summerizer {
 		return firstSentence.toString();
 	}
 
-	private CoreMap getFirstSent() {
+	private CoreMap findFirstSent() {
 		CoreMap sentence = anot.get(SentencesAnnotation.class).get(0);
 		return sentence;
 	}
+	public String getFirstSent(){
+		if(firstSent==null){
+			CoreMap tmp = findFirstSent();
+			firstSent=tmp.toString();
+			
+		}
+		return firstSent;
+	}
+	
 
 	// Get rid of words that don't fit at the beginning or end of the sentence
 	private void trimSentenceEnds(CoreMap sentence) {
@@ -100,29 +112,28 @@ public class FirstSentSum implements Summerizer {
 	}
 	
 	private void removeInternalDependentClause(List<CoreLabel> tokens){
+		boolean dependOn=false;
 		for(int i=0;i<tokens.size();i++){
 			String pos = tokens.get(i).get(
 					PartOfSpeechAnnotation.class);
 			
-			boolean dependOn=false;
-			for (String s : SEPERATOR_POS) {
-				
-				if (s.equals(pos)) {
+		
+				if (pos.equals(",")) {
 					dependOn=!dependOn;
-					if(s.equals(",")||s.equals(";")){  
-						tokens.remove(i);  // i want to use  "." as a way of terminating a dependent clause but i dont want to remove the character. So i had to do this 
-					}
-						
-						
+					tokens.remove(i);
+				}
+				else if(pos.equals(".")){
+					dependOn=!dependOn;
 				}
 				else{
 					if(dependOn)
 						tokens.remove(i);
 				}
-			}
+			
 
 			// Remove the last token
-			
+			System.out.println(tokens.toString());
 		}
+
 	}
 }

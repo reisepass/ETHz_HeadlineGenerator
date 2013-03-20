@@ -111,7 +111,8 @@ public class main {
 		int maxSummaryLength = 100; // in characters //TODO should be retrieved
 									// from args
 		
-		Doc test = XMLDoc.readXML("data/raw/APW19981016.0240");
+		//Doc test = XMLDoc.readXML("data/raw/APW19981016.0240");
+		Doc test2 = XMLDoc.readXML("data/raw/APW19981116.0205");
 		/*
 		Properties props = new Properties();
 		props.put("annotators", conf.getAnnotators());
@@ -125,9 +126,15 @@ public class main {
 		*/
 		
 		DocReader readFile = new DocReader("data/parsed/");
-		Annotation document = readFile.read("APW19981016.0240.parsed");
-		Summerizer naiveSum = new FirstSentSum(test, document,maxSummaryLength);
-		System.out.println("Summary: "+naiveSum.summary());
+		//Annotation document = readFile.read("APW19981016.0240.parsed");
+		Annotation document2 = readFile.read("APW19981116.0205.parsed");
+		//Summerizer naiveSum = new FirstSentSum(test, document,maxSummaryLength);
+		//System.out.println("Summary: "+naiveSum.summary());
+		
+		FirstSentSum naiveSum2 = new FirstSentSum(test2, document2,maxSummaryLength);
+		System.out.println("FirstSent was: "+naiveSum2.getFirstSent());
+		System.out.println("Summary2: "+naiveSum2.summary());
+		
 
 		int a = 1 + 1;
 
