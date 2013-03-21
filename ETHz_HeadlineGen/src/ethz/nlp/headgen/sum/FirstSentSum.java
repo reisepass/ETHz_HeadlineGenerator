@@ -49,7 +49,10 @@ public class FirstSentSum implements Summerizer {
 
 		// TODO Auto-generated method stub
 		// Jared is the best
-		return toString(firstSentence);
+		 String out =toString(firstSentence);
+		 out=fixCapitalization(out);
+		 out=fixWhiteSpace(out);
+		return out;
 	}
 
 	private CoreMap findFirstSent() {
@@ -145,6 +148,31 @@ public class FirstSentSum implements Summerizer {
 
 	}
 
+	public static String fixWhiteSpace(String inp){
+		
+		while(inp.indexOf(" ,")!=-1){
+			inp=inp.substring(0,inp.indexOf(" ,"))+","+inp.substring(inp.indexOf(" ,")+2,inp.length());
+		}
+		
+		while(inp.indexOf(" .")!=-1){
+			inp=inp.substring(0,inp.indexOf(" ."))+". "+inp.substring(inp.indexOf(" .")+2,inp.length());
+		}
+		while(inp.indexOf("  ")!=-1){
+			inp=inp.substring(0,inp.indexOf("  "))+" "+inp.substring(inp.indexOf("  ")+2,inp.length());
+		}
+		return inp;
+	}
+	
+	public static String fixCapitalization(String inp){
+		while(!('a'<=inp.charAt(0)&&inp.charAt(0)<='z')&&!('A'<=inp.charAt(0)&&inp.charAt(0)<='Z')){
+			inp=inp.substring(1,inp.length());
+		}
+		if('a'<=inp.charAt(0)&&inp.charAt(0)<='z'){
+			inp=(char)((int)inp.charAt(0)-32)+inp.substring(1,inp.length());
+		}
+		return inp;
+	}
+	
 	public String toString(CoreMap sentence) {
 		StringBuilder sb = new StringBuilder();
 		for (CoreLabel token : sentence.get(TokensAnnotation.class)) {

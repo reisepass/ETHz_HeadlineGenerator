@@ -32,6 +32,9 @@ public class main {
 		super();
 	}
 
+	
+
+	
 	public Annotation nlpTest(String data) {
 		// creates a StanfordCoreNLP object, with POS tagging, lemmatization,
 		// NER, parsing, and coreference resolution
@@ -93,6 +96,11 @@ public class main {
 	 * @throws IOException
 	 */
 	public static void main(String[] args) throws IOException {
+		
+		String t2 = FirstSentSum.fixCapitalization("     the quick red fox  jumped  the , brown fence .     ");
+		String t1 = FirstSentSum.fixWhiteSpace(t2);
+		
+	
 		Config conf = ConfigFactory.loadConfiguration(Config.class,
 				Config.DEFAULT);
 		IOConfig ioConf = ConfigFactory.loadConfiguration(IOConfig.class,
