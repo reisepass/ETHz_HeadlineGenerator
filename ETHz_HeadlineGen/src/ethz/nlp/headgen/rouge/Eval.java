@@ -15,7 +15,7 @@ public class Eval {
 	@XmlElement(name = "MODEL-ROOT", required = true)
 	protected String modelRoot;
 	@XmlElement(name = "INPUT-FORMAT", required = true)
-	protected InputFormat inputFormat;
+	protected InputFormat inputFormat = new InputFormat();
 	@XmlElement(name = "PEERS", required = true)
 	protected Peers peers;
 	@XmlElement(name = "MODELS", required = true)
