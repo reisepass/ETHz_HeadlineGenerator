@@ -1,7 +1,19 @@
 package ethz.nlp.headgen;
 import java.util.HashMap;
+import java.util.TreeMap;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.Set;
+import java.util.SortedMap;
 
 import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.PartOfSpeechAnnotation;
@@ -168,14 +180,18 @@ public class Extractor {
 
 	/*
 	 * 
-	 * Currently this class counts words like New York as 2 seperate things,
-	 * Even tho the framework knows they are to gather. Have not found out where
-	 * that information is sitting.
 	 * 
 	 * ????? Is it safe to assume that if there are n words in a row with the
 	 * same NE type tag then all n words are actually part of 1 long word.
+	 * 
+	 * Ok in class it has been confirmed not safe. For example the United states of America
+	 * but the stanford NLP tool kit actually labels the Of in that example as part of the
+	 * organization. So that means they already solved the problem for us
+	 * 
+	 * 
+	 * 
 	 */
-	public Map<String, Integer> nameEntityTypeCount() {
+	public Map<String, Integer> nameEntityCount() {   
 
 		Map<String, Integer> nameCount = new HashMap<String, Integer>();
 
@@ -216,12 +232,111 @@ public class Extractor {
 
 		}
 
-		nameEntityTypeCounts = nameCount; // Save locally in case we runAll and
+		nameEntityCounts = nameCount; // Save locally in case we runAll and
 											// want to retrieve them differently
 		return nameCount;
 	}
 
-	public void rankedNameEntityCount() {
-		// TODO STUB
+	
+	
+	// Finally 
+	public String[] rankedNameEntityCount(int max) {
+		
+		
+
+		/*
+		HashMap<String,Integer> map = new HashMap<String,Integer>();
+	        ValueComparator bvc =  new ValueComparator(map);
+	        TreeMap<String, Integer> sortedMap = new TreeMap<String, Integer>(bvc);
+			
+		sortedMap.putAll(nameEntityCounts);
+		
+		String[] topNE = new String[max];
+		int count=0;
+		for (Map.Entry entry : sortedMap.entrySet()) {
+			System.out.println("Key : " + entry.getKey() + " Value : "
+				+ entry.getValue());
+			
+			topNE[count]=(String) entry.getKey();
+			count++;
+			if(count>max)
+				continue;
+		}
+		
+		*/
+		
+		
+		
+		//-----------------------------------
+		
+		//NavigableSet<String> sortedKeys=sortedMap.descendingKeySet();
+		
+		 List< Map.Entry<String, Integer>> list = new LinkedList< Map.Entry<String, Integer>>(nameEntityCounts.entrySet());
+		    Collections.sort(list, new Comparator() {
+		         public int compare(Object o1, Object o2) {
+		              return ((Comparable) ((Map.Entry) (o1)).getValue())
+		             .compareTo(((Map.Entry) (o2)).getValue());
+		         }
+		    });
+		Collections.reverse(list);
+
+		
+	
+		 int count=0;
+		 String[] topNE= new String[max];
+		Iterator<Entry<String, Integer>> iter = list.iterator();
+		while(iter.hasNext()&&count<max){
+			topNE[count]=iter.next().getKey();
+			count++;
+		}
+		
+		return topNE;
 	}
+	
+	
+	
+	
+	/*
+	static Map sortByValue(Map map) {
+	    List list = new LinkedList(map.entrySet());
+	    Collections.sort(list, new Comparator() {
+	         public int compare(Object o1, Object o2) {
+	              return ((Comparable) ((Map.Entry) (o1)).getValue())
+	             .compareTo(((Map.Entry) (o2)).getValue());
+	         }
+	    });
+
+	   Map result = new LinkedHashMap();
+	   for (Iterator it = list.iterator(); it.hasNext();) {
+	       Map.Entry entry = (Map.Entry)it.next();
+	       result.put(entry.getKey(), entry.getValue());
+	   }
+	   return result;
+	} 
+	*/
+	
+	
 }
+
+
+/*
+class ValueComparator implements Comparator<String> {
+
+    Map<String, Integer> base;
+    public ValueComparator(Map<String, Integer> base) {
+        this.base = base;
+    }
+
+    // Note: this comparator imposes orderings that are inconsistent with equals.    
+    public int compare(String a, String b) {
+        if (base.get(a) >= base.get(b)) {
+            return -1;
+        } else {
+            return 1;
+        } // returning 0 would merge keys
+    }
+}
+*/
+
+
+

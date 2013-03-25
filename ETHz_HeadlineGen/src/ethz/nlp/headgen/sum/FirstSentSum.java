@@ -14,20 +14,20 @@ import ethz.nlp.headgen.Doc;
 public class FirstSentSum implements Summerizer {
 	
 
-	private static final String[] FLUFF_POS = {  }; // POS that can be
+	protected static final String[] FLUFF_POS = {  }; // POS that can be
 														// removed without
 														// changing sentence
 														// information EX: very,
 														// much, super
-	private static final String[] SEPERATOR_POS = { ",", ";", "." };
-	private static final String[] OPEN_CLASS_POS = { "NN","NNS","NNP", "NNP","NNPS", "RB","RBR","UH","VBD","VBG","VBN","VBP","VBZ","FW","JJ","JJR","JJS" };  // http://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
-	private static final String[] START_POS = OPEN_CLASS_POS;
-	private static final String[] END_POS = OPEN_CLASS_POS;
+	protected static final String[] SEPERATOR_POS = { ",", ";", "." };
+	protected static final String[] OPEN_CLASS_POS = { "NN","NNS","NNP", "NNP","NNPS", "RB","RBR","UH","VBD","VBG","VBN","VBP","VBZ","FW","JJ","JJR","JJS" };  // http://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
+	protected static final String[] START_POS = OPEN_CLASS_POS;
+	protected static final String[] END_POS = OPEN_CLASS_POS;
 	
-	private Doc doc;
-	private Annotation anot;
-	private int sumLeng;
-	private String firstSent;
+	protected Doc doc;
+	protected Annotation anot;
+	protected int sumLeng;
+	protected String firstSent;
 
 	public FirstSentSum(Doc doc, Annotation anot, int summaryLength) {
 		this.doc = doc;
@@ -61,7 +61,7 @@ public class FirstSentSum implements Summerizer {
 
 	
 	
-	private CoreMap findFirstSent() {
+	protected CoreMap findFirstSent() {
 		CoreMap sentence = anot.get(SentencesAnnotation.class).get(0);
 		return sentence;
 	}
@@ -76,13 +76,13 @@ public class FirstSentSum implements Summerizer {
 	}
 
 	// Get rid of words that don't fit at the beginning or end of the sentence
-	private void trimSentenceEnds(CoreMap sentence) {
+	protected void trimSentenceEnds(CoreMap sentence) {
 		List<CoreLabel> tokens = sentence.get(TokensAnnotation.class);
 		trimBeginning(tokens);
 		trimEnd(tokens);
 	}
 
-	private void trimBeginning(List<CoreLabel> tokens) {
+	protected void trimBeginning(List<CoreLabel> tokens) {
 		while (tokens.size() > 0) {
 			String pos = tokens.get(0).get(PartOfSpeechAnnotation.class);
 
@@ -97,7 +97,7 @@ public class FirstSentSum implements Summerizer {
 		}
 	}
 
-	private void trimEnd(List<CoreLabel> tokens) {
+	protected void trimEnd(List<CoreLabel> tokens) {
 		while (tokens.size() > 0) {
 			String pos = tokens.get(tokens.size() - 1).get(
 					PartOfSpeechAnnotation.class);
@@ -113,7 +113,7 @@ public class FirstSentSum implements Summerizer {
 		}
 	}
 
-	private void removePoSInList(List<CoreLabel> tokens,String[] List ) {
+	protected void removePoSInList(List<CoreLabel> tokens,String[] List ) {
 		if(List==null){
 			List=FLUFF_POS;
 		}
@@ -132,7 +132,7 @@ public class FirstSentSum implements Summerizer {
 
 		}
 	}
-	private void removePoSNotInList(List<CoreLabel> tokens,String[] List ){
+	protected void removePoSNotInList(List<CoreLabel> tokens,String[] List ){
 		if(List==null){
 			List=OPEN_CLASS_POS;
 		}
@@ -154,7 +154,7 @@ public class FirstSentSum implements Summerizer {
 		}
 	}
 
-	private void removeInternalDependentClause(List<CoreLabel> tokens) {
+	protected void removeInternalDependentClause(List<CoreLabel> tokens) {
 		boolean dependOn = false;
 		for (int i = 0; i < tokens.size(); i++) {
 			String pos = tokens.get(i).get(PartOfSpeechAnnotation.class);
@@ -180,11 +180,7 @@ public class FirstSentSum implements Summerizer {
 
 	}
 
-	private void removeAllClosedClass(List<CoreLabel> tokens){
-		for (int i = 0; i < tokens.size(); i++) {
-		
-		}
-	}
+
 
 	public static String fixWhiteSpace(String inp){
 		

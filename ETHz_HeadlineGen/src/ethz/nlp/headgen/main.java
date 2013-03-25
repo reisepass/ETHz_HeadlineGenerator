@@ -23,6 +23,7 @@ import edu.stanford.nlp.util.CoreMap;
 import ethz.nlp.headgen.io.DocReader;
 import ethz.nlp.headgen.io.IOConfig;
 import ethz.nlp.headgen.sum.FirstSentSum;
+import ethz.nlp.headgen.sum.NeFreqBasedSum;
 import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.util.ConfigFactory;
 import ethz.nlp.headgen.xml.XMLDoc;
@@ -97,8 +98,6 @@ public class main {
 	 */
 	public static void main(String[] args) throws IOException {
 		
-		String t2 = FirstSentSum.fixCapitalization("     the quick red fox  jumped  the , brown fence .     ");
-		String t1 = FirstSentSum.fixWhiteSpace(t2);
 		
 	
 		Config conf = ConfigFactory.loadConfiguration(Config.class,
@@ -119,6 +118,10 @@ public class main {
 			System.out.println("Before :"
 					+ test2.cont.substring(0, test2.cont.indexOf(".")));
 			System.out.println("Summary: " + sum);
+			
+			NeFreqBasedSum naiveSum3 = new NeFreqBasedSum(test2, parsedDoc,
+					test2.cont.length());
+			System.out.println("Summary3: " + naiveSum3.summary());
 		} else {
 			// TODO: Generate doc summaries here
 
@@ -148,6 +151,8 @@ public class main {
 					maxSummaryLength);
 			System.out.println("FirstSent was: " + naiveSum2.getFirstSent());
 			System.out.println("Summary2: " + naiveSum2.summary());
+			
+			
 
 			int a = 1 + 1;
 		}
