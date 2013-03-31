@@ -1,6 +1,12 @@
 package ethz.nlp.headgen;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -20,22 +26,30 @@ import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation;
 import edu.stanford.nlp.trees.semgraph.SemanticGraph;
 import edu.stanford.nlp.trees.semgraph.SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation;
 import edu.stanford.nlp.util.CoreMap;
-import ethz.nlp.headgen.io.DocReader;
 import ethz.nlp.headgen.io.IOConfig;
+import ethz.nlp.headgen.io.ParsedDocReader;
+import ethz.nlp.headgen.io.ParsedDocWriter;
+import ethz.nlp.headgen.rouge.RougeEvalBuilder;
 import ethz.nlp.headgen.sum.FirstSentSum;
-import ethz.nlp.headgen.sum.NeFreqBasedSum;
-import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.util.ConfigFactory;
 import ethz.nlp.headgen.xml.XMLDoc;
 
 public class main {
-	public main() {
-		super();
+
+	public static final int DEFAULT_MAX_SUMMARY_LENGTH = 100;
+
+	private Config conf;
+	private IOConfig ioConf;
+
+	private List<Doc> documents = new ArrayList<Doc>();
+
+	private StanfordCoreNLP pipeline;
+
+	public main(Config conf, IOConfig ioConf) {
+		this.conf = conf;
+		this.ioConf = ioConf;
 	}
 
-	
-
-	
 	public Annotation nlpTest(String data) {
 		// creates a StanfordCoreNLP object, with POS tagging, lemmatization,
 		// NER, parsing, and coreference resolution
@@ -97,65 +111,202 @@ public class main {
 	 * @throws IOException
 	 */
 	public static void main(String[] args) throws IOException {
-		
-		
-	
 		Config conf = ConfigFactory.loadConfiguration(Config.class,
 				Config.DEFAULT);
 		IOConfig ioConf = ConfigFactory.loadConfiguration(IOConfig.class,
 				IOConfig.DEFAULT);
 
-		Annotation parsedDoc;
-		if ("parsed".equals(conf.getDocType())) {
-			DocReader reader = new DocReader(ioConf.getParsedDir());
-			parsedDoc = reader.read("APW19981116.0205.parsed");
-			Doc test2 = XMLDoc.readXML("data/raw/APW19981116.0205");
+		main m = new main(conf, ioConf);
 
-			FirstSentSum naiveSum2 = new FirstSentSum(test2, parsedDoc,
-					test2.cont.length());
-			String sum = naiveSum2.summary();
+		m.loadFiles();
+		m.generateSummaries();
+		for (Doc d : m.documents) {
+			System.out.println(d.summary);
+		}
+		m.writeSummaries();
+		m.genRouge();
+	}
 
-			System.out.println("Before :"
-					+ test2.cont.substring(0, test2.cont.indexOf(".")));
-			System.out.println("Summary: " + sum);
-			
-			NeFreqBasedSum naiveSum3 = new NeFreqBasedSum(test2, parsedDoc,
-					test2.cont.length());
-			System.out.println("Summary3: " + naiveSum3.summary());
-		} else {
-			// TODO: Generate doc summaries here
+	private void genRouge() throws IOException {
+		Map<Doc, String[]> evalMap = linkModels();
+		RougeEvalBuilder reb = new RougeEvalBuilder(ioConf.getOutputDir(),
+				ioConf.getModelDir());
+		reb.addEvals(evalMap);
+		reb.write("ROUGE-IN.xml");
+	}
 
-			// Just gonna mess around in here for a while
-			int maxSummaryLength = 100; // in characters //TODO should be
-										// retrieved
-										// from args
+	private void writeSummaries() throws IOException {
+		File outputDir = new File(ioConf.getOutputDir());
+		if (!outputDir.exists()) {
+			if (outputDir.mkdirs()) {
+				throw new IOException("Unable to create the output directory: "
+						+ outputDir.getAbsolutePath());
+			}
+		}
 
-			// Doc test = XMLDoc.readXML("data/raw/APW19981016.0240");
-			Doc test2 = XMLDoc.readXML("data/raw/APW19981116.0205");
-			/*
-			 * Properties props = new Properties(); props.put("annotators",
-			 * conf.getAnnotators()); StanfordCoreNLP pipeline = new
-			 * StanfordCoreNLP(props); String text = test.cont; Annotation
-			 * document = new Annotation(text); pipeline.annotate(document);
-			 * Extractor feat = new Extractor(document); feat.runAll();
-			 */
+		FileWriter fw = null;
+		String fileName;
+		for (Doc d : documents) {
+			fileName = d.f.getName();
 
-			DocReader readFile = new DocReader("data/parsed/");
-			// Annotation document = readFile.read("APW19981016.0240.parsed");
-			Annotation document2 = readFile.read("APW19981116.0205.parsed");
-			// Summerizer naiveSum = new FirstSentSum(test,
-			// document,maxSummaryLength);
-			// System.out.println("Summary: "+naiveSum.summary());
+			try {
+				fw = new FileWriter(new File(outputDir, fileName));
+				fw.write(d.summary);
+			} finally {
+				if (fw != null) {
+					fw.close();
+				}
+			}
 
-			FirstSentSum naiveSum2 = new FirstSentSum(test2, document2,
-					maxSummaryLength);
-			System.out.println("FirstSent was: " + naiveSum2.getFirstSent());
-			System.out.println("Summary2: " + naiveSum2.summary());
-			
-			
-
-			int a = 1 + 1;
 		}
 	}
 
+	private void loadFiles() throws IOException {
+		File rawDir = new File(ioConf.getRawDir());
+
+		if (!rawDir.exists() || !rawDir.isDirectory()) {
+			throw new IOException(rawDir.getAbsolutePath()
+					+ " is not a valid directory");
+		}
+
+		Doc doc;
+		for (File d : rawDir.listFiles()) {
+			if (d.isDirectory()) {
+				for (File f : d.listFiles()) {
+					doc = XMLDoc.readXML(f);
+					documents.add(doc);
+
+					addAnnotation(doc);
+				}
+			}
+		}
+	}
+
+	private Map<Doc, String[]> linkModels() {
+		// Mapping of doc names to models
+		Map<Doc, String[]> map = new HashMap<Doc, String[]>();
+
+		File modelDir = new File(ioConf.getModelDir());
+
+		String prefix, suffix;
+		for (Doc d : documents) {
+			// Set model prefix/suffix
+			prefix = d.getParentDirName();
+			prefix = prefix.substring(0, prefix.length() - 1).toUpperCase();
+
+			suffix = d.f.getName();
+			suffix = suffix.substring(suffix.lastIndexOf(".")+1);
+
+			// Add doc/models to the map
+			map.put(d, modelDir.list(new ModelFileFilter(prefix, suffix)));
+		}
+		return map;
+	}
+
+	private void addAnnotation(Doc doc) throws IOException {
+		File parentDir = new File(ioConf.getParsedDir(), doc.getParentDirName());
+		File anotFile = new File(parentDir, doc.getAnotFileName());
+		if (!anotFile.exists()) {
+			genAnnotation(doc);
+			saveAnnotation(doc, anotFile);
+		} else {
+			doc.annotation = ParsedDocReader.read(anotFile);
+		}
+	}
+
+	private void saveAnnotation(Doc doc, File outFile) throws IOException {
+		// Create the parsed output parent directory
+		File parentDir = outFile.getParentFile();
+		if (!parentDir.exists()) {
+			if (!parentDir.mkdirs()) {
+				throw new IOException(
+						"Unable to create parsed output directory: "
+								+ parentDir);
+			}
+		}
+
+		ParsedDocWriter.writeOutput(doc.annotation, outFile);
+	}
+
+	private void genAnnotation(Doc doc) {
+		// Create the pipeline if it doesn't yet exist
+		if (pipeline == null) {
+			Properties props = new Properties();
+			props.put("annotators", conf.getAnnotators());
+			pipeline = new StanfordCoreNLP(props);
+		}
+		Annotation anot = new Annotation(doc.cont);
+		pipeline.annotate(anot);
+		doc.annotation = anot;
+	}
+
+	private void generateSummaries() {
+		for (Doc d : documents) {
+			d.summary = new FirstSentSum(d, DEFAULT_MAX_SUMMARY_LENGTH)
+					.summary();
+		}
+	}
+
+	// if ("parsed".equals(conf.getDocType())) {
+	// annotations = new ArrayList<Annotation>(1);
+	// DocReader reader = new DocReader(ioConf.getParsedDir());
+	// annotations.add(reader.read("APW19981116.0205.parsed"));
+	// Doc test2 = XMLDoc.readXML("data/raw/APW19981116.0205");
+	//
+	// FirstSentSum naiveSum2 = new FirstSentSum(test2, parsedDoc,
+	// test2.cont.length());
+	// String sum = naiveSum2.summary();
+	//
+	// System.out.println("Before :"
+	// + test2.cont.substring(0, test2.cont.indexOf(".")));
+	// System.out.println("Summary: " + sum);
+	//
+	// NeFreqBasedSum naiveSum3 = new NeFreqBasedSum(test2, parsedDoc,
+	// test2.cont.length());
+	// System.out.println("Summary3: " + naiveSum3.summary());
+	// } else {
+	// // TODO: Generate doc summaries here
+	//
+	// // Just gonna mess around in here for a while
+	// int maxSummaryLength = 100; // in characters //TODO should be
+	// // retrieved
+	// // from args
+	//
+	// // Doc test = XMLDoc.readXML("data/raw/APW19981016.0240");
+	// Doc test2 = XMLDoc.readXML("data/raw/APW19981116.0205");
+	// /*
+	// * Properties props = new Properties(); props.put("annotators",
+	// * conf.getAnnotators()); StanfordCoreNLP pipeline = new
+	// * StanfordCoreNLP(props); String text = test.cont; Annotation
+	// * document = new Annotation(text); pipeline.annotate(document);
+	// * Extractor feat = new Extractor(document); feat.runAll();
+	// */
+	//
+	// DocReader readFile = new DocReader("data/parsed/");
+	// // Annotation document = readFile.read("APW19981016.0240.parsed");
+	// Annotation document2 = readFile.read("APW19981116.0205.parsed");
+	// // Summerizer naiveSum = new FirstSentSum(test,
+	// // document,maxSummaryLength);
+	// // System.out.println("Summary: "+naiveSum.summary());
+	//
+	// FirstSentSum naiveSum2 = new FirstSentSum(test2, document2,
+	// maxSummaryLength);
+	// System.out.println("FirstSent was: " + naiveSum2.getFirstSent());
+	// System.out.println("Summary2: " + naiveSum2.summary());
+	//
+	// int a = 1 + 1;
+	// }
+	public class ModelFileFilter implements FilenameFilter {
+		private String prefix, suffix;
+
+		public ModelFileFilter(String prefix, String suffix) {
+			this.prefix = prefix;
+			this.suffix = suffix;
+		}
+
+		@Override
+		public boolean accept(File dir, String name) {
+			return name.startsWith(prefix) && name.endsWith(suffix);
+		}
+	}
 }

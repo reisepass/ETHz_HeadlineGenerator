@@ -14,7 +14,7 @@ public class XMLDoc {
 	public static Doc readXML(String f) {
 		return readXML(new File(f));
 	}
-	
+
 	public static Doc readXML(File f) {
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory
@@ -34,7 +34,7 @@ public class XMLDoc {
 
 			Doc inputDoc = new Doc(docno.item(0).getTextContent(), docTy
 					.item(0).getTextContent(), type.item(0).getTextContent(),
-					text.item(0).getTextContent());
+					text.item(0).getTextContent(), f);
 
 			return inputDoc;
 		} catch (Exception e) {

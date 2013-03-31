@@ -10,18 +10,12 @@ import java.util.List;
 import edu.stanford.nlp.pipeline.Annotation;
 import ethz.nlp.headgen.util.ConfigFactory;
 
-public class DocReader {
-	private File dir;
-
-	public DocReader(String dir) {
-		this(new File(dir));
+public class ParsedDocReader {
+	public static List<Annotation> readAll(String dir) throws IOException {
+		return readAll(new File(dir));
 	}
 
-	public DocReader(File dir) {
-		this.dir = dir;
-	}
-
-	public List<Annotation> readAll() throws IOException {
+	public static List<Annotation> readAll(File dir) throws IOException {
 		if (!dir.isDirectory() || !dir.exists()) {
 			throw new IOException(dir + " is not a valid directory");
 		}
@@ -33,12 +27,12 @@ public class DocReader {
 
 		return docs;
 	}
-	
-	public Annotation read(String f) throws IOException {
-		return read(new File(dir, f));
+
+	public static Annotation read(String f) throws IOException {
+		return read(new File(f));
 	}
-	
-	public Annotation read(File f) throws IOException {
+
+	public static Annotation read(File f) throws IOException {
 		ObjectInputStream ois = null;
 		try {
 			ois = new ObjectInputStream(new FileInputStream(f));
@@ -51,15 +45,5 @@ public class DocReader {
 				ois.close();
 			}
 		}
-	}
-
-	public static void main(String[] args) throws IOException {
-		IOConfig ioConf = ConfigFactory.loadConfiguration(IOConfig.class,
-				IOConfig.DEFAULT);
-
-		DocReader reader = new DocReader(ioConf.getParsedDir());
-
-		List<Annotation> docs = reader.readAll();
-		System.out.println("# Docs read: " + docs.size());
 	}
 }
