@@ -30,6 +30,7 @@ import ethz.nlp.headgen.io.IOConfig;
 import ethz.nlp.headgen.io.ParsedDocReader;
 import ethz.nlp.headgen.io.ParsedDocWriter;
 import ethz.nlp.headgen.rouge.RougeEvalBuilder;
+import ethz.nlp.headgen.rouge.RougeScript;
 import ethz.nlp.headgen.sum.FirstSentSum;
 import ethz.nlp.headgen.util.ConfigFactory;
 import ethz.nlp.headgen.xml.XMLDoc;
@@ -123,16 +124,22 @@ public class main {
 		for (Doc d : m.documents) {
 			System.out.println(d.summary);
 		}
+
+		String rougeInFile = "ROUGE-IN.xml", rougeOutFile = "ROUGE-OUT";
 		m.writeSummaries();
-		m.genRouge();
+		RougeEvalBuilder reb = m.genRouge();
+		reb.write(rougeInFile);
+
+		RougeScript rs = new RougeScript(conf.getRougePath(), 95, 75, 1, 1.2);
+		rs.run(rougeInFile, rougeOutFile);
 	}
 
-	private void genRouge() throws IOException {
+	private RougeEvalBuilder genRouge() throws IOException {
 		Map<Doc, String[]> evalMap = linkModels();
 		RougeEvalBuilder reb = new RougeEvalBuilder(ioConf.getOutputDir(),
 				ioConf.getModelDir());
 		reb.addEvals(evalMap);
-		reb.write("ROUGE-IN.xml");
+		return reb;
 	}
 
 	private void writeSummaries() throws IOException {
@@ -195,7 +202,7 @@ public class main {
 			prefix = prefix.substring(0, prefix.length() - 1).toUpperCase();
 
 			suffix = d.f.getName();
-			suffix = suffix.substring(suffix.lastIndexOf(".")+1);
+			suffix = suffix.substring(suffix.lastIndexOf(".") + 1);
 
 			// Add doc/models to the map
 			map.put(d, modelDir.list(new ModelFileFilter(prefix, suffix)));
