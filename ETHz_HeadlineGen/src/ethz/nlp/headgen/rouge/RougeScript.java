@@ -27,8 +27,8 @@ public class RougeScript {
 	}
 
 	public void run(String inFile, String outFile) throws IOException {
-		System.out.println(genCommand(inFile, outFile));
-		Process p = Runtime.getRuntime().exec(genCommand(inFile, outFile));
+		System.out.println(genCommand(inFile));
+		Process p = Runtime.getRuntime().exec(genCommand(inFile));
 
 		writeOutput(p, new File(outFile));
 		try {
@@ -64,9 +64,9 @@ public class RougeScript {
 	 * Template: ROUGE/RELEASE-1.5.5/ROUGE-1.5.5.pl -e ROUGE/RELEASE-1.5.5/data
 	 * -a -c 95 -b 75 -m -n 4 -w 1.2 t1.rouge.in > output
 	 */
-	private String genCommand(String inFile, String outFile) {
+	private String genCommand(String inFile) {
 		return rougePath + "ROUGE-1.5.5.pl -e " + rougePath + "data -a -c "
 				+ confidence + " -b " + nBytes + " -m -n " + nGrams + " -w "
-				+ weight + " " + inFile + " > " + outFile;
+				+ weight + " " + inFile;
 	}
 }

@@ -1,7 +1,6 @@
 package ethz.nlp.headgen;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -31,7 +30,8 @@ import ethz.nlp.headgen.io.ParsedDocReader;
 import ethz.nlp.headgen.io.ParsedDocWriter;
 import ethz.nlp.headgen.rouge.RougeEvalBuilder;
 import ethz.nlp.headgen.rouge.RougeScript;
-import ethz.nlp.headgen.sum.FirstSentSum;
+import ethz.nlp.headgen.sum.FirstBaseline;
+import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.util.ConfigFactory;
 import ethz.nlp.headgen.xml.XMLDoc;
 
@@ -120,17 +120,20 @@ public class main {
 		main m = new main(conf, ioConf);
 
 		m.loadFiles();
-		m.generateSummaries();
+		for (Doc d : m.documents) {
+			m.generateSummary(d, new FirstBaseline(d,
+					DEFAULT_MAX_SUMMARY_LENGTH));
+		}
 		for (Doc d : m.documents) {
 			System.out.println(d.summary);
 		}
 
-		String rougeInFile = "ROUGE-IN.xml", rougeOutFile = "ROUGE-OUT";
+		String rougeInFile = "ROUGE-IN.xml", rougeOutFile = "FirstBaselineOutput-2";
 		m.writeSummaries();
 		RougeEvalBuilder reb = m.genRouge();
 		reb.write(rougeInFile);
 
-		RougeScript rs = new RougeScript(conf.getRougePath(), 95, 75, 1, 1.2);
+		RougeScript rs = new RougeScript(conf.getRougePath(), 95, 500, 2, 1.2);
 		rs.run(rougeInFile, rougeOutFile);
 	}
 
@@ -247,11 +250,8 @@ public class main {
 		doc.annotation = anot;
 	}
 
-	private void generateSummaries() {
-		for (Doc d : documents) {
-			d.summary = new FirstSentSum(d, DEFAULT_MAX_SUMMARY_LENGTH)
-					.summary();
-		}
+	private void generateSummary(Doc d, Summerizer s) {
+		d.summary = s.summary();
 	}
 
 	// if ("parsed".equals(conf.getDocType())) {
