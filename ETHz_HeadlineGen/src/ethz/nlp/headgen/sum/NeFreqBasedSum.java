@@ -13,6 +13,12 @@ import ethz.nlp.headgen.Extractor;
 public class NeFreqBasedSum extends FirstSentSum implements Summerizer {
 	protected Extractor extr;
 
+	public NeFreqBasedSum(Doc doc,int summaryLength) {
+		super(doc, summaryLength);
+		extr = new Extractor(doc.annotation);
+		extr.runAll();
+	}
+	
 	public NeFreqBasedSum(Doc doc, Annotation anot, int summaryLength) {
 		super(doc, summaryLength);
 		extr = new Extractor(anot);
