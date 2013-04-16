@@ -2,6 +2,8 @@ package ethz.nlp.headgen;
 import java.util.HashMap;
 import java.util.TreeMap;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -23,6 +25,7 @@ import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.util.CoreMap;
+import ethz.nlp.headgen.sum.FirstSentSum;
 
 public class Extractor {
 
@@ -52,14 +55,73 @@ public class Extractor {
 	private Map<String, Integer> nameEntityCounts;
 	private Map<String, Integer> nameEntityTypeCounts;
 	private Map<String, Integer> wordCounts;
+	private Map<String, Integer> nounCounts;
+	private Map<StrPair, Integer> biNNSentCounts;
 
+	public Extractor(){
+		document = null;
+	}
 	public Extractor(Annotation preAnnotatedDoc) {
 
 		document = preAnnotatedDoc;
 		Map<String, Integer> nameEntityCounts = null;
 
 	}
-
+	
+	public Map<StrPair, Integer> getBiNNSentCounts(){
+		if(biNNSentCounts==null){
+			countWordCooccurances();
+		}
+		else if(biNNSentCounts.size()<1){
+			countWordCooccurances();
+		}
+		return biNNSentCounts;
+	}
+	// By Sentence this 
+	public void countWordCooccurances(){
+		biNNSentCounts = new HashMap<StrPair, Integer>();
+		ArrayList<String> openClassPos = new ArrayList(Arrays.asList(FirstSentSum.OPEN_CLASS_POS));  // Change this to a hashset or something that is faster lookup for .contains
+		
+		
+	
+		
+		List<CoreMap> sentences = document.get(SentencesAnnotation.class);
+		int ab=3;
+		for (CoreMap sentence : sentences) {
+				int a=1+1;
+				a=2;
+				
+				
+			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
+				String wrd = token.get(TextAnnotation.class);
+				String pos = token.get(PartOfSpeechAnnotation.class);
+				if(openClassPos.contains(pos)){
+				
+					for (CoreLabel token2 : sentence.get(TokensAnnotation.class)) {
+						String wrd2 = token2.get(TextAnnotation.class);
+						String pos2 = token2.get(PartOfSpeechAnnotation.class);
+						if(openClassPos.contains(pos2)&&!wrd2.equals(wrd)){
+							StrPair wrdPair = new StrPair(wrd,wrd2);
+							if(biNNSentCounts.get(wrdPair)!=null){
+								
+								biNNSentCounts.put(wrdPair,biNNSentCounts.get(wrdPair)+1);
+							}
+							else{
+								biNNSentCounts.put(wrdPair,1);
+							}
+						}
+					}
+				}
+			}
+			
+			
+		
+		}
+		
+		
+	}
+	
+	
 	public void runAll() {
 		// posTagCount();
 		// nameEntityTypeCount();
@@ -67,30 +129,48 @@ public class Extractor {
 
 		Map<String, Integer> posCount = new HashMap<String, Integer>();
 		Map<String, Integer> words = new HashMap<String, Integer>();
-		Map<String, Integer> nameCount = new HashMap<String, Integer>();
-
+		Map<String, Integer> nameCount = new HashMap<String, Integer>(); 
+		Map<String, Integer> nounCnt = new HashMap<String, Integer>();
+		
 		List<CoreMap> sentences = document.get(SentencesAnnotation.class);
 		for (CoreMap sentence : sentences) {
 			// traversing the words in the current sentence
 			// a CoreLabel is a CoreMap with additional token-specific methods
 			String lastType = "";
 			String lastWord = "";
+			
+			
+			
+			
 			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
 				// this is the text of the token
 				String ne = token.get(NamedEntityTagAnnotation.class);
-
+				//counting PoS tags
 				String pos = token.get(PartOfSpeechAnnotation.class);
 				if (posCount.get(pos) == null) {
 					posCount.put(pos, 1);
 				} else
 					posCount.put(pos, posCount.get(pos) + 1);
-
+				
+				
+				//counting words
 				String wrd = token.get(TextAnnotation.class);
 				if (words.get(wrd) == null) {
 					words.put(wrd, 1);
 				} else
 					words.put(wrd, words.get(wrd) + 1);
 
+				//counting nouns seperatly
+				if(pos.equals("NN")||pos.equals("NNS")){
+					
+					if(nounCnt.get(wrd) == null){
+						nounCnt.put(wrd, 1);
+					}
+					else
+						nounCnt.put(wrd, nounCnt.get(wrd) + 1) ;
+					
+				}
+				
 				if (lastType.equals("PERSON") || lastType.equals("MISC")
 						|| lastType.equals("LOCATION")
 						|| lastType.equals("ORGANIZATION")) {
@@ -127,7 +207,7 @@ public class Extractor {
 										// to retrieve them differently
 		wordCounts = words;
 		posTagCounts = posCount;
-
+		nounCounts = nounCnt;
 	}
 
 	public Map<String, Integer> posTagCount() {
@@ -238,33 +318,14 @@ public class Extractor {
 	}
 
 	
-	
+	public String [] rankedNounCounts(int max){
+		return getRankingFromMap(max,nounCounts);
+	}
 	// Finally 
 	public String[] rankedNameEntityCount(int max) {
 		
 		
 
-		/*
-		HashMap<String,Integer> map = new HashMap<String,Integer>();
-	        ValueComparator bvc =  new ValueComparator(map);
-	        TreeMap<String, Integer> sortedMap = new TreeMap<String, Integer>(bvc);
-			
-		sortedMap.putAll(nameEntityCounts);
-		
-		String[] topNE = new String[max];
-		int count=0;
-		for (Map.Entry entry : sortedMap.entrySet()) {
-			System.out.println("Key : " + entry.getKey() + " Value : "
-				+ entry.getValue());
-			
-			topNE[count]=(String) entry.getKey();
-			count++;
-			if(count>max)
-				continue;
-		}
-		
-		*/
-		
 		
 		
 		//-----------------------------------
@@ -293,50 +354,57 @@ public class Extractor {
 		return topNE;
 	}
 	
-	
-	
-	
-	/*
-	static Map sortByValue(Map map) {
-	    List list = new LinkedList(map.entrySet());
-	    Collections.sort(list, new Comparator() {
-	         public int compare(Object o1, Object o2) {
-	              return ((Comparable) ((Map.Entry) (o1)).getValue())
-	             .compareTo(((Map.Entry) (o2)).getValue());
-	         }
-	    });
+	public String[] getRankingFromMap(int max,Map<String, Integer> mapInp ) {
 
-	   Map result = new LinkedHashMap();
-	   for (Iterator it = list.iterator(); it.hasNext();) {
-	       Map.Entry entry = (Map.Entry)it.next();
-	       result.put(entry.getKey(), entry.getValue());
-	   }
-	   return result;
-	} 
-	*/
+		 List< Map.Entry<String, Integer>> list = new LinkedList< Map.Entry<String, Integer>>(mapInp.entrySet());
+		    Collections.sort(list, new Comparator() {
+		         public int compare(Object o1, Object o2) {
+		              return ((Comparable) ((Map.Entry) (o1)).getValue())
+		             .compareTo(((Map.Entry) (o2)).getValue());
+		         }
+		    });
+		Collections.reverse(list);
+
+		 int count=0;
+		 String[] topNE= new String[max];
+		Iterator<Entry<String, Integer>> iter = list.iterator();
+		while(iter.hasNext()&&count<max){
+			topNE[count]=iter.next().getKey();
+			count++;
+		}
+		
+		return topNE;
+	}
 	
 	
+	
+	// There should be a way of making the method getRankingFromMap more generic so that it can include this usecase
+	public  StrPair[] getRankingFromPairMap(int max,Map< StrPair, Integer> mapInp ) {
+
+		 List< Map.Entry<StrPair, Integer>> list = new LinkedList< Map.Entry<StrPair, Integer>>(mapInp.entrySet());
+		    Collections.sort(list, new Comparator() {
+		         public int compare(Object o1, Object o2) {
+		              return ((Comparable) ((Map.Entry) (o1)).getValue()).compareTo(((Map.Entry) (o2)).getValue());
+		         }
+		    });
+		Collections.reverse(list);
+
+		 int count=0;
+		 StrPair[] topNE= new StrPair[max];
+		Iterator<Entry<StrPair, Integer>> iter = list.iterator();
+		while(iter.hasNext()&&count<max){
+			Entry<StrPair,Integer> tmp=iter.next();
+			topNE[count]=tmp.getKey();
+			System.out.println(tmp.toString());
+			count++;
+		}
+		
+		return topNE;
+	}
 }
 
 
-/*
-class ValueComparator implements Comparator<String> {
 
-    Map<String, Integer> base;
-    public ValueComparator(Map<String, Integer> base) {
-        this.base = base;
-    }
-
-    // Note: this comparator imposes orderings that are inconsistent with equals.    
-    public int compare(String a, String b) {
-        if (base.get(a) >= base.get(b)) {
-            return -1;
-        } else {
-            return 1;
-        } // returning 0 would merge keys
-    }
-}
-*/
 
 
 

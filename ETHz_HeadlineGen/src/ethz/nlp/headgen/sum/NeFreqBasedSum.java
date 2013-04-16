@@ -13,6 +13,9 @@ import ethz.nlp.headgen.Extractor;
 public class NeFreqBasedSum extends FirstSentSum implements Summerizer {
 	protected Extractor extr;
 
+	
+	
+	
 	public NeFreqBasedSum(Doc doc,int summaryLength) {
 		super(doc, summaryLength);
 		extr = new Extractor(doc.annotation);
@@ -24,6 +27,8 @@ public class NeFreqBasedSum extends FirstSentSum implements Summerizer {
 		extr = new Extractor(anot);
 		extr.runAll();
 	}
+	
+
 
 	/*
 	 * Currently i just look for the sentence which as the most of the top
@@ -34,7 +39,7 @@ public class NeFreqBasedSum extends FirstSentSum implements Summerizer {
 	 * Ok if i were to collect all the sentences that have atleast 2 of the top
 	 * NE. How would i choose the best ????
 	 */
-	private CoreMap findImpSent() {
+	protected CoreMap findImpSent() {
 		String[] topNE = extr.rankedNameEntityCount(5);
 		Iterator<CoreMap> sentItr = anot.get(SentencesAnnotation.class)
 				.iterator();
@@ -45,7 +50,7 @@ public class NeFreqBasedSum extends FirstSentSum implements Summerizer {
 		while (sentItr.hasNext()) {
 			CoreMap curSent = sentItr.next();
 			String curText = curSent.get(TextAnnotation.class);
-
+			
 			int curCount = 0;
 			for (String str : topNE) {
 				if (curText.contains(str))

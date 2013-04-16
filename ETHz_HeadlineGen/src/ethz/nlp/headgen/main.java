@@ -32,6 +32,7 @@ import ethz.nlp.headgen.rouge.RougeEvalBuilder;
 import ethz.nlp.headgen.rouge.RougeScript;
 import ethz.nlp.headgen.sum.FirstBaseline;
 import ethz.nlp.headgen.sum.NeFreqBasedSum;
+import ethz.nlp.headgen.sum.NeNounFreqSum;
 import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.util.ConfigFactory;
 import ethz.nlp.headgen.xml.XMLDoc;
@@ -122,7 +123,7 @@ public class main {
 
 		m.loadFiles();
 		for (Doc d : m.documents) {
-			m.generateSummary(d, new NeFreqBasedSum(d,d.annotation,
+			m.generateSummary(d, new NeNounFreqSum(d,d.annotation,
 					DEFAULT_MAX_SUMMARY_LENGTH));
 		}
 		for (Doc d : m.documents) {
