@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import edu.stanford.nlp.pipeline.Annotation;
+import ethz.nlp.headgen.data.WordCountTree;
 import ethz.nlp.headgen.sum.Summerizer;
 
 public class Doc implements Summerizer {
@@ -26,6 +27,7 @@ public class Doc implements Summerizer {
 	public Annotation annotation;
 	public String summary;
 	public List<String> models;
+	public WordCountTree wordCounts;
 
 	@Override
 	public String toString() {

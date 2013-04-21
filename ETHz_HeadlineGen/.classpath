@@ -12,5 +12,6 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/xom.jar"/>
 	<classpathentry kind="lib" path="lib/lingpipe-4.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/concurrent-trees-2.0.0.jar" sourcepath="lib/concurrent-trees-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

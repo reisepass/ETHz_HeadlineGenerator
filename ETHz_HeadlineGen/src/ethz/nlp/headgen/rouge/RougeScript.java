@@ -15,7 +15,6 @@ public class RougeScript {
 
 	public RougeScript(String rougePath, int confidence, int nBytes,
 			int nGrams, double weight) {
-		this.rougePath = rougePath;
 		this.confidence = confidence;
 		this.nBytes = nBytes;
 		this.nGrams = nGrams;
@@ -24,6 +23,8 @@ public class RougeScript {
 		if (!rougePath.endsWith("/")) {
 			rougePath += "/";
 		}
+		
+		this.rougePath = rougePath;
 	}
 
 	public void run(String inFile, String outFile) throws IOException {
