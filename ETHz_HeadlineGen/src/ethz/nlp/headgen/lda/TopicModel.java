@@ -21,7 +21,6 @@ public class TopicModel {
 	}
 
 	public static TopicModel loadModel() {
-		
 		return null;
 	}
 
@@ -56,5 +55,9 @@ public class TopicModel {
 		cmdOption.dir = config.getModelDir();
 		cmdOption.dfile = config.getDataFile();
 		return cmdOption;
+	}
+	
+	public static void main(String[] args) {
+		
 	}
 }
