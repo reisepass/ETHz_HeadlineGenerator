@@ -1,4 +1,5 @@
 package ethz.nlp.headgen.util;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -67,10 +68,12 @@ public class ConfigFactory implements InvocationHandler {
 	}
 
 	private <T> Object castReturn(Class<T> returnType, String result) {
-		if (returnType == Integer.class || returnType == int.class) {
-			return new Integer(result);
-		} else if (result == null) {
+		if (result == null) {
 			return null;
+		} else if (returnType == Integer.class || returnType == int.class) {
+			return new Integer(result);
+		} else if (returnType == Double.class || returnType == double.class) {
+			return new Double(result);
 		} else {
 			return result.toString();
 		}

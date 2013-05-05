@@ -3,6 +3,7 @@ package ethz.nlp.headgen.data;
 import java.util.List;
 import java.util.Properties;
 
+import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
@@ -41,8 +42,8 @@ public class CorpusCounts {
 
 		d.wordCounts = new WordCountTree();
 		for (CoreLabel token : tokens) {
-			totalWordCounts.put(token.toString());
-			d.wordCounts.put(token.toString());
+			totalWordCounts.put(token.get(TextAnnotation.class));
+			d.wordCounts.put(token.get(TextAnnotation.class));
 		}
 
 		for (CharSequence word : d.wordCounts.getKeysStartingWith("")) {
@@ -55,11 +56,11 @@ public class CorpusCounts {
 	public int getNumDocs() {
 		return numDocs;
 	}
-	
+
 	public WordCountTree getTotalWordCounts() {
 		return totalWordCounts;
 	}
-	
+
 	public WordCountTree getDocAppearanceCounts() {
 		return docAppearanceCounts;
 	}
