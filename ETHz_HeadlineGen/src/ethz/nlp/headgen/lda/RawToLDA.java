@@ -3,6 +3,7 @@ package ethz.nlp.headgen.lda;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 import edu.stanford.nlp.ling.CoreAnnotations.LemmaAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
@@ -12,6 +13,9 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import ethz.nlp.headgen.util.StopWords;
 
 public class RawToLDA {
+	private static final Pattern ACCEPT_PATTERN = Pattern
+			.compile("^[a-zA-Z]+$");
+
 	private static StanfordCoreNLP pipeline = null;
 
 	private RawToLDA() {
@@ -31,8 +35,12 @@ public class RawToLDA {
 
 	private static List<String> lemmatize(List<CoreLabel> tokens) {
 		List<String> lemmas = new ArrayList<String>();
+		String lemma;
 		for (CoreLabel token : tokens) {
-			lemmas.add(token.get(LemmaAnnotation.class));
+			lemma = token.get(LemmaAnnotation.class);
+			if (ACCEPT_PATTERN.matcher(lemma).matches()) {
+				lemmas.add(lemma);
+			}
 		}
 		return lemmas;
 	}
@@ -59,13 +67,9 @@ public class RawToLDA {
 	private static String toString(List<String> lemmas) {
 		StringBuilder sb = new StringBuilder();
 		for (String s : lemmas) {
-			sb.append(s + " ");
+			sb.append(s.toLowerCase() + " ");
 		}
 		sb.deleteCharAt(sb.length() - 1);
 		return sb.toString();
-	}
-	
-	public static void main(String[] args) {
-		
 	}
 }

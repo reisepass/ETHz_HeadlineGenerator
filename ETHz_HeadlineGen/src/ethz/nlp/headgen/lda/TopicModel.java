@@ -1,5 +1,8 @@
 package ethz.nlp.headgen.lda;
 
+import java.io.IOException;
+
+import ethz.nlp.headgen.util.ConfigFactory;
 import jgibblda.Estimator;
 import jgibblda.LDACmdOption;
 import jgibblda.Model;
@@ -17,6 +20,7 @@ public class TopicModel {
 		cmdOptions.est = true;
 		Estimator estimator = new Estimator();
 		estimator.init(cmdOptions);
+		
 		estimator.estimate();
 	}
 
@@ -56,8 +60,11 @@ public class TopicModel {
 		cmdOption.dfile = config.getDataFile();
 		return cmdOption;
 	}
-	
-	public static void main(String[] args) {
-		
+
+	public static void main(String[] args) throws IOException {
+		LDAEstimatorConfig config = ConfigFactory.loadConfiguration(
+				LDAEstimatorConfig.class, "./conf/lda.conf");
+
+		TopicModel.generateModel(config);
 	}
 }
