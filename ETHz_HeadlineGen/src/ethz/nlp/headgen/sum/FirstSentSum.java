@@ -19,11 +19,12 @@ public class FirstSentSum implements Summerizer {
 													// information EX: very,
 													// much, super
 	protected static final String[] SEPERATOR_POS = { ",", ";", "." };
-	protected static final String[] OPEN_CLASS_POS = { "NN", "NNS", "NNP",
+	public static final String[] OPEN_CLASS_POS = { "NN", "NNS", "NNP",
 			"NNP", "NNPS", "RB", "RBR", "UH", "VBD", "VBG", "VBN", "VBP",
 			"VBZ", "FW", "JJ", "JJR", "JJS" }; // http://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
 	protected static final String[] START_POS = OPEN_CLASS_POS;
 	protected static final String[] END_POS = OPEN_CLASS_POS;
+	public static final String[] CLEAN_WORDS = OPEN_CLASS_POS;
 
 	protected Doc doc;
 	protected Annotation anot;
@@ -133,7 +134,7 @@ public class FirstSentSum implements Summerizer {
 		}
 	}
 
-	protected void removePoSNotInList(List<CoreLabel> tokens, String[] List) {
+	public static void removePoSNotInList(List<CoreLabel> tokens, String[] List) {
 		if (List == null) {
 			List = OPEN_CLASS_POS;
 		}
