@@ -64,4 +64,8 @@ public class RawToLDA {
 		sb.deleteCharAt(sb.length() - 1);
 		return sb.toString();
 	}
+	
+	public static void main(String[] args) {
+		
+	}
 }
