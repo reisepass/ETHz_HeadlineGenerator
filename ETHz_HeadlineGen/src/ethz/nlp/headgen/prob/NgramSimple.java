@@ -27,7 +27,7 @@ public class NgramSimple implements NGramProbs {
 		ngramFreq=inNgrams;
 		this.n=N;
 	}
- 
+  
 
 	
 	public TreeMap<ArrayList<String>,Double> filterNgrams(Annotation docAno){ //TODO it would be good to strip docAno of punctuation and closed form words
