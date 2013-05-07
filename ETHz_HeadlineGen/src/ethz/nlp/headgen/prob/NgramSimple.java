@@ -66,16 +66,10 @@ public class NgramSimple implements NGramProbs {
 
 	@Override
 	public double getProb(List<String> words) {
-		// TODO Auto-generated method stub
-		return 0;
+		ArrayList<String> ngram = new ArrayList<String>(words);
+		return ngramFreq.get(ngram);
 	}
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
-	}
 
 }
