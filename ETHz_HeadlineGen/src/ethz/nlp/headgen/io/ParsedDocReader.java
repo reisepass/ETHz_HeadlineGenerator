@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.stanford.nlp.pipeline.Annotation;
-import ethz.nlp.headgen.util.ConfigFactory;
 
 public class ParsedDocReader {
 	public static List<Annotation> readAll(String dir) throws IOException {

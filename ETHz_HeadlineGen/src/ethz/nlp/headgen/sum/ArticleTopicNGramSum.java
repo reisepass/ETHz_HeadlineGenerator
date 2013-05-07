@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 import ethz.nlp.headgen.Doc;
-import ethz.nlp.headgen.prob.DocNGramProbs;
-import ethz.nlp.headgen.prob.NGramProbs;
 import ethz.nlp.headgen.prob.NgramSimple;
 
 public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {

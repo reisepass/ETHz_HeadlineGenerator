@@ -12,7 +12,6 @@ import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.util.CoreMap;
-import ethz.nlp.headgen.sum.FirstSentSum;
 
 public class NgramSimple implements NGramProbs {
 	protected TreeMap<ArrayList<String>,Double> ngramFreq;
