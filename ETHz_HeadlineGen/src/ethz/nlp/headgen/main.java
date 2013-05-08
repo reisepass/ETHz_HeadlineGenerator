@@ -17,6 +17,7 @@ import ethz.nlp.headgen.io.ParsedDocReader;
 import ethz.nlp.headgen.io.ParsedDocWriter;
 import ethz.nlp.headgen.rouge.RougeEvalBuilder;
 import ethz.nlp.headgen.rouge.RougeScript;
+import ethz.nlp.headgen.sum.ArticleTopicNGramSum;
 import ethz.nlp.headgen.sum.NeFreqBasedSum;
 import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.util.ConfigFactory;
@@ -24,10 +25,10 @@ import ethz.nlp.headgen.xml.XMLDoc;
 
 public class main {
 
-	public static final int DEFAULT_MAX_SUMMARY_LENGTH = 100;
+	public static final int DEFAULT_MAX_SUMMARY_LENGTH = 75;
 
 	private Config conf;
-	private IOConfig ioConf;
+	private static IOConfig ioConf;
 
 	private List<Doc> documents = new ArrayList<Doc>();
 
@@ -94,6 +95,10 @@ public class main {
 	// return document;
 	// }
 
+	
+	
+	
+	
 	/**
 	 * @param args
 	 * @throws IOException
@@ -108,6 +113,7 @@ public class main {
 
 		m.loadFiles();
 
+		/*
 		// System.out.println("Generating corpus word counts");
 		// CorpusCounts counts = CorpusCounts.generateCounts(m.documents);
 		// System.out.println("--TF-IDF Values--");
@@ -133,10 +139,13 @@ public class main {
 		// for (String s : sortedVals) {
 		// System.out.println("\t" + s);
 		// }
+		 */
+		
 
 		for (Doc d : m.documents) {
-			m.generateSummary(d, new NeFreqBasedSum(d, d.annotation,
-					DEFAULT_MAX_SUMMARY_LENGTH));
+			m.generateSummary(d, new ArticleTopicNGramSum(d, DEFAULT_MAX_SUMMARY_LENGTH));
+			
+	
 		}
 		for (Doc d : m.documents) {
 			System.out.println(d.summary);
@@ -227,14 +236,14 @@ public class main {
 		return map;
 	}
 
-	private void addAnnotation(Doc doc) throws IOException {
+	public void addAnnotation(Doc doc) throws IOException {
 		File parentDir = new File(ioConf.getParsedDir(), doc.getParentDirName());
 		File anotFile = new File(parentDir, doc.getAnotFileName());
 		if (!anotFile.exists()) {
 			genAnnotation(doc);
 			saveAnnotation(doc, anotFile);
 		} else {
-			doc.annotation = ParsedDocReader.read(anotFile);
+			doc.setAno( ParsedDocReader.read(anotFile));
 		}
 	}
 
@@ -249,7 +258,7 @@ public class main {
 			}
 		}
 
-		ParsedDocWriter.writeOutput(doc.annotation, outFile);
+		ParsedDocWriter.writeOutput(doc.getAno(), outFile);
 	}
 
 	private void genAnnotation(Doc doc) {
@@ -261,7 +270,7 @@ public class main {
 		}
 		Annotation anot = new Annotation(doc.cont);
 		pipeline.annotate(anot);
-		doc.annotation = anot;
+		doc.setAno(anot);
 	}
 
 	private void generateSummary(Doc d, Summerizer s) {

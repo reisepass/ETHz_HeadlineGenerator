@@ -240,6 +240,10 @@ public class Extractor {
 	
 	
 	// Finally 
+	
+	
+	//TODO This function returns a bunch of nulls if the doc does not have atleast Max NE in it. 
+	//
 	public String[] rankedNameEntityCount(int max) {
 		
 		

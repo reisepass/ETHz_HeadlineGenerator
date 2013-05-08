@@ -13,6 +13,8 @@ import ethz.nlp.headgen.Doc;
  
 public class FirstSentSum implements Summerizer {
 
+	
+	public static final String WILDCARD_STRING = "*@#$^$#@$*";
 	protected static final String[] FLUFF_POS = {}; // POS that can be
 													// removed without
 													// changing sentence
@@ -33,7 +35,7 @@ public class FirstSentSum implements Summerizer {
 
 	public FirstSentSum(Doc doc, int summaryLength) {
 		this.doc = doc;
-		this.anot = doc.annotation;
+		this.anot = doc.getAno();
 		this.sumLeng = summaryLength;
 	}
 

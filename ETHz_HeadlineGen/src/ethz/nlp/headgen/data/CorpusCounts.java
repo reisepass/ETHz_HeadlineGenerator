@@ -28,8 +28,8 @@ public class CorpusCounts {
 
 	private void addCounts(Doc d) {
 		List<CoreLabel> tokens;
-		if (d.annotation != null) {
-			tokens = d.annotation.get(TokensAnnotation.class);
+		if (d.getAno() != null) {
+			tokens = d.getAno().get(TokensAnnotation.class);
 		} else {
 			// Generate the tokens
 			Annotation a = new Annotation(d.cont);

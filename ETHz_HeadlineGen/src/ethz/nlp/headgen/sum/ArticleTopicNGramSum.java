@@ -1,11 +1,17 @@
 package ethz.nlp.headgen.sum;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 import ethz.nlp.headgen.Doc;
 import ethz.nlp.headgen.prob.DocNGramProbs;
 import ethz.nlp.headgen.prob.NGramProbs;
+import ethz.nlp.headgen.prob.NgramLightFilter;
 import ethz.nlp.headgen.prob.NgramSimple;
  
 public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
@@ -16,13 +22,14 @@ public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
 		super(doc, summaryLength);
 		// TODO Auto-generated constructor stub
 	}
+	
 
 	/**
 	 * @param args
 	 */
 
 
-	private String printArray(ArrayList<String> in){
+	protected String printArray(ArrayList<String> in){
 		StringBuilder strBld = new StringBuilder();
 		for(String el : in){
 			strBld.append(el+" ");
@@ -32,8 +39,12 @@ public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
 	}
 	
 	
-	private void testData(){
-		topicWeightedNgrams = new  TreeMap<ArrayList<String>, Double>();
+	protected void testData(){
+		topicWeightedNgrams = new  TreeMap<ArrayList<String>, Double>(new Comparator() {
+	         public int compare(Object o1, Object o2) {
+	              return  o1.toString().compareTo(o2.toString());
+	         }
+	    });
 		ArrayList<String> tmpEl = new ArrayList<String>();
 		tmpEl.add("Herp"); tmpEl.add("Derp");
 		topicWeightedNgrams.put(tmpEl,0.1 );
@@ -73,6 +84,27 @@ public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
 		tmpEl = new ArrayList<String>();
 		tmpEl.add("the"); tmpEl.add("man");
 		topicWeightedNgrams.put(tmpEl,0.1 );
+		
+		tmpEl = new ArrayList<String>();
+		tmpEl.add("Ruben"); tmpEl.add("just");
+		topicWeightedNgrams.put(tmpEl,0.2 );
+		
+		tmpEl = new ArrayList<String>();
+		tmpEl.add("just"); tmpEl.add("passed");
+		topicWeightedNgrams.put(tmpEl,0.3 );
+		
+		tmpEl = new ArrayList<String>();
+		tmpEl.add("passed"); tmpEl.add("his");
+		topicWeightedNgrams.put(tmpEl,0.1 );
+		
+		tmpEl = new ArrayList<String>();
+		tmpEl.add("his"); tmpEl.add("final");
+		topicWeightedNgrams.put(tmpEl,0.1 );
+		
+		tmpEl = new ArrayList<String>();
+		tmpEl.add("final"); tmpEl.add("exam");
+		topicWeightedNgrams.put(tmpEl,0.3 );
+		
 	}
 	
 	
@@ -81,19 +113,24 @@ public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
 			StringBuilder strBld = new StringBuilder();
 			String out="##################################### #";
 			testData();  //TODO <- Instead of doing this we need to save the real topicWeighted ngrams for this article to var topicWeightedNgrams
-			NgramSimple topicNgrams = new NgramSimple(topicWeightedNgrams,2);
-			TreeMap<ArrayList<String>,Double> filtered = topicNgrams.filterNgrams(this.doc.annotation);
-			ArrayList<String> curNgram=filtered.firstKey();
-			while(true){
+			NgramSimple topicNgrams = new NgramLightFilter(topicWeightedNgrams,2,1);
+			TreeMap<ArrayList<String>,Double> filtered = topicNgrams.filterNgrams(doc);
 				
-				if(strBld.length()<2){
-					strBld.append(printArray(curNgram));
-				}
-				else{
-					curNgram = filtered.lowerKey(curNgram);
-					strBld.append(printArray(curNgram));
-					
-				}
+			
+	
+			
+			 List< Map.Entry<ArrayList<String>, Double>> list = new LinkedList< Map.Entry<ArrayList<String>, Double>>(filtered.entrySet());
+			    Collections.sort(list, new Comparator() {
+			         public int compare(Object o1, Object o2) {
+			              return ((Comparable) ((Map.Entry) (o1)).getValue()).compareTo(((Map.Entry) (o2)).getValue());
+			         }
+			    });
+			    Collections.reverse(list);
+
+			for(Map.Entry<ArrayList<String>, Double> elem : list){
+	 
+				strBld.append(printArray(elem.getKey()));
+				
 				if(strBld.length()>sumLeng){
 					out = strBld.toString();
 					out = out.substring(0,sumLeng-1);

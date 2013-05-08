@@ -2,9 +2,11 @@ package ethz.nlp.headgen.prob;
  
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Stack;
+import java.util.Queue;
 import java.util.TreeMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
@@ -12,7 +14,7 @@ import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.util.CoreMap;
-import ethz.nlp.headgen.sum.FirstSentSum;
+import ethz.nlp.headgen.Doc;
 
 public class NgramSimple implements NGramProbs {
 	protected TreeMap<ArrayList<String>,Double> ngramFreq;
@@ -27,16 +29,30 @@ public class NgramSimple implements NGramProbs {
 		ngramFreq=inNgrams;
 		this.n=N;
 	}
-  
+	public TreeMap<ArrayList<String>,Double> filterNgrams(Doc doc){
 
-	
-	public TreeMap<ArrayList<String>,Double> filterNgrams(Annotation docAno){ //TODO it would be good to strip docAno of punctuation and closed form words
+		return filterNgrams(doc,(Comparator<ArrayList<String>>)ngramFreq.comparator());
+	}
+
+	/**
+	 *  This will only work with very large corpus of topics because we will only included bigrams
+	 *  from the article that exactly match one in the query Document 
+	 * 
+	 * 
+	 */
+public TreeMap<ArrayList<String>,Double> filterNgrams(Doc doc, Comparator<ArrayList<String>> comp){  //TODO paramaterize Comparator in this method
+		
+
+	Annotation docAno = doc.getAno();
+		
 		List<CoreMap> sentences = docAno.get(SentencesAnnotation.class);
-		TreeMap<ArrayList<String>,Double> filteredNgram = new TreeMap<ArrayList<String>,Double>(ngramFreq.comparator());		
+		TreeMap<ArrayList<String>,Double> filteredNgram = new TreeMap<ArrayList<String>,Double>(comp);		
 		ArrayList<ArrayList<String>> unUsed = new ArrayList<ArrayList<String>>();
-		Stack<String> lastWords = new Stack<String>();
+		Queue<String> lastWords = new LinkedBlockingQueue<String>();
 		String curWord=null;
-		for (CoreMap sentence : sentences) {			
+		
+		
+			for (CoreMap sentence : sentences) {			
 			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
 				if(curWord!=null)
 					lastWords.add(curWord);
@@ -50,10 +66,12 @@ public class NgramSimple implements NGramProbs {
 						filteredNgram.put(ngram,ngramFreq.get(ngram));
 					else
 						unUsed.add(ngram);
+					lastWords.poll();
 					
 				}
 			}
 		}
+		
 		
 		return filteredNgram;
 	}
@@ -64,11 +82,14 @@ public class NgramSimple implements NGramProbs {
 		return 0;
 	}
 
+
+	
 	@Override
 	public double getProb(List<String> words) {
 		ArrayList<String> ngram = new ArrayList<String>(words);
 		return ngramFreq.get(ngram);
 	}
+
 
 
 

@@ -3,8 +3,8 @@ package ethz.nlp.headgen.prob;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
- 
-import edu.stanford.nlp.pipeline.Annotation;
+
+import ethz.nlp.headgen.Doc;
 
 public interface NGramProbs {
 	/**
@@ -15,7 +15,7 @@ public interface NGramProbs {
 	 * @return
 	 */
 	public double getProb(String... words);
-	public TreeMap<ArrayList<String>,Double> filterNgrams(Annotation docAno);
+	public TreeMap<ArrayList<String>,Double> filterNgrams(Doc DOC);
 	/**
 	 * Take list of strings and return the probability that sequence of words
 	 * occurred

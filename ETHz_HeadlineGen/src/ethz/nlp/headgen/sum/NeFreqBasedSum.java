@@ -15,7 +15,7 @@ public class NeFreqBasedSum extends FirstSentSum implements Summerizer {
 
 	public NeFreqBasedSum(Doc doc,int summaryLength) {
 		super(doc, summaryLength);
-		extr = new Extractor(doc.annotation);
+		extr = new Extractor(doc.getAno());
 		extr.runAll();
 	} 
 	
@@ -25,7 +25,7 @@ public class NeFreqBasedSum extends FirstSentSum implements Summerizer {
 		extr.runAll();
 	}
 
-	/*
+	/**
 	 * Currently i just look for the sentence which as the most of the top
 	 * ranking name entities Currently not accounting for ties Not sure how many
 	 * of the top NE we want to include.
@@ -36,8 +36,7 @@ public class NeFreqBasedSum extends FirstSentSum implements Summerizer {
 	 */
 	private CoreMap findImpSent() {
 		String[] topNE = extr.rankedNameEntityCount(5);
-		Iterator<CoreMap> sentItr = anot.get(SentencesAnnotation.class)
-				.iterator();
+		Iterator<CoreMap> sentItr = anot.get(SentencesAnnotation.class).iterator();
 
 		String bestSentSofar = "";
 		CoreMap best = null;
@@ -48,8 +47,9 @@ public class NeFreqBasedSum extends FirstSentSum implements Summerizer {
 
 			int curCount = 0;
 			for (String str : topNE) {
-				if (curText.contains(str))
-					curCount++;
+				if(str!=null)
+					if (curText.contains(str))
+						curCount++;
 			}
 			if (curCount > numTopIncluded) {
 				bestSentSofar = curText;
