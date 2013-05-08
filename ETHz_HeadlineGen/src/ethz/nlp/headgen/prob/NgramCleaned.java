@@ -6,7 +6,7 @@ import java.util.TreeMap;
 import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.pipeline.Annotation;
 import ethz.nlp.headgen.sum.FirstSentSum;
- 
+  
 public class NgramCleaned extends NgramSimple implements NGramProbs {
 
 	public NgramCleaned(TreeMap<ArrayList<String>, Double> inNgrams) {

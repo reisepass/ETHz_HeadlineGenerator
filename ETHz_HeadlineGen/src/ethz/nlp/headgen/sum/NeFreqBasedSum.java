@@ -17,7 +17,7 @@ public class NeFreqBasedSum extends FirstSentSum implements Summerizer {
 		super(doc, summaryLength);
 		extr = new Extractor(doc.annotation);
 		extr.runAll();
-	}
+	} 
 	
 	public NeFreqBasedSum(Doc doc, Annotation anot, int summaryLength) {
 		super(doc, summaryLength);
