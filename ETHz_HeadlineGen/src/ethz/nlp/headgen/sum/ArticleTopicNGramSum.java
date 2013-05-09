@@ -6,19 +6,19 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.TreeMap;
 
 import ethz.nlp.headgen.Doc;
-
 import ethz.nlp.headgen.prob.DocNGramProbs;
 import ethz.nlp.headgen.prob.NGramProbs;
 import ethz.nlp.headgen.prob.NgramLightFilter;
-
 import ethz.nlp.headgen.prob.NgramSimple;
  
 public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
 
 	protected TreeMap<ArrayList<String>,Double> topicWeightedNgrams;
+	protected Random	ranNum = new Random();  //TODO once ngram methods are coded this can be removed
 	
 	public ArticleTopicNGramSum(Doc doc, int summaryLength) {
 		super(doc, summaryLength);
@@ -40,13 +40,7 @@ public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
 		return strBld.toString();
 	}
 	
-	
-	protected void testData(){
-		topicWeightedNgrams = new  TreeMap<ArrayList<String>, Double>(new Comparator() {
-	         public int compare(Object o1, Object o2) {
-	              return  o1.toString().compareTo(o2.toString());
-	         }
-	    });
+	private void testData2(){
 		ArrayList<String> tmpEl = new ArrayList<String>();
 		tmpEl.add("Herp"); tmpEl.add("Derp");
 		topicWeightedNgrams.put(tmpEl,0.1 );
@@ -108,8 +102,34 @@ public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
 		topicWeightedNgrams.put(tmpEl,0.3 );
 		
 	}
+	protected void testData(){
+		topicWeightedNgrams = new  TreeMap<ArrayList<String>, Double>(new Comparator() {
+	         public int compare(Object o1, Object o2) {
+	              return  o1.toString().compareTo(o2.toString());
+	         }
+	    });
 	
+		tmpFunc("Cambodian","leader");
+		tmpFunc("leader", "Hun");
+		tmpFunc("Hun", "Sen");
+		tmpFunc("Sen", "rejected");
+		tmpFunc("Hun Sen", "rejected_");
+		tmpFunc("rejected", "oposition");
+		tmpFunc("oposition", "parties");
+		tmpFunc("Country","Cambodia");
+		tmpFunc("AWSOME DUDE", "Hun Sen");
+		tmpFunc("Hun Sen", "WHATS UPPPP");
+		
+	}
 	
+	protected void tmpFunc(String s1, String s2){
+		ArrayList<String> tmpEl = new ArrayList<String>();
+		tmpEl.add(s1); tmpEl.add(s2);
+		topicWeightedNgrams.put(tmpEl, ranNum.nextDouble()*0.8);
+		
+	}
+	
+	// EDIT
 	// Very basic method simply listing the top most likely ngrams in a row to fill up the character limit. 
 	public String summary() {
 			StringBuilder strBld = new StringBuilder();
@@ -117,7 +137,7 @@ public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
 			testData();  //TODO <- Instead of doing this we need to save the real topicWeighted ngrams for this article to var topicWeightedNgrams
 			NgramSimple topicNgrams = new NgramLightFilter(topicWeightedNgrams,2,1);
 			TreeMap<ArrayList<String>,Double> filtered = topicNgrams.filterNgrams(doc);
-				
+				 
 			
 	
 			

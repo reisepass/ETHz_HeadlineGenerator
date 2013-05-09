@@ -23,10 +23,11 @@ import ethz.nlp.headgen.prob.NgramSimple;
 public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implements Summerizer {
 	protected Extractor extr;
 	protected int ngramLength= 3;
-
+ 
 	/**
 	 * @param doc
 	 * @param summaryLength
+	 * 
 	 */
 	public MostProbSentBasedOnTopicDocProb(Doc doc, int summaryLength) {
 		super(doc, summaryLength);
@@ -38,27 +39,29 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 	protected ArrayList<String> wildWithInpAtBack(String inp){
 		ArrayList<String> out = new ArrayList<String>(ngramLength);
 		for(int i=0;i<ngramLength-1;i++){
-			out.set(i, FirstSentSum.WILDCARD_STRING);
+			out.add(i, FirstSentSum.WILDCARD_STRING);
 		}
-		out.set(ngramLength-1, inp);
+		out.add(ngramLength-1, inp);
 		return out;
 	}
 	
 	protected ArrayList<String> wildWithInpAtFront(String inp){
 		ArrayList<String> out = new ArrayList<String>(ngramLength);
-		out.set(0, inp);
+		out.add(0, inp);
 		for(int i=1;i<ngramLength;i++){
-			out.set(i, FirstSentSum.WILDCARD_STRING);
+			out.add(i, FirstSentSum.WILDCARD_STRING);
 		}
 		return out;
 	}
 	
 	public String summary() {
+		
 		StringBuilder strBld = new StringBuilder();
 		String out="##################################### #";
 		testData();  //TODO <- Instead of doing this we need to save the real topicWeighted ngrams for this article to var topicWeightedNgrams
+		ngramLength=topicWeightedNgrams.firstEntry().getKey().size();
 		
-		NgramSimple topicNgrams = new NgramLightFilter(topicWeightedNgrams,2,1);
+		NgramLightFilter topicNgrams = new NgramLightFilter(topicWeightedNgrams,ngramLength,1);
 		
 		Comparator<ArrayList<String>> CompareObj=  new Comparator<ArrayList<String>>(){
 			public int compare(ArrayList<String> o1, ArrayList<String> o2) {
@@ -93,6 +96,8 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 						
 						for(int i=0;i<o1.size();i++){
 								if(o1.get(i).equals(FirstSentSum.WILDCARD_STRING))
+									continue;
+								if(o2.get(i).equals(FirstSentSum.WILDCARD_STRING))
 									continue;
 								if(o1.get(i).equals(o2.get(i)))
 									continue;

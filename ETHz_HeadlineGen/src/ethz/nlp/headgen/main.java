@@ -18,13 +18,14 @@ import ethz.nlp.headgen.io.ParsedDocWriter;
 import ethz.nlp.headgen.rouge.RougeEvalBuilder;
 import ethz.nlp.headgen.rouge.RougeScript;
 import ethz.nlp.headgen.sum.ArticleTopicNGramSum;
+import ethz.nlp.headgen.sum.MostProbSentBasedOnTopicDocProb;
 import ethz.nlp.headgen.sum.NeFreqBasedSum;
 import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.util.ConfigFactory;
 import ethz.nlp.headgen.xml.XMLDoc;
 
 public class main {
-
+ 
 	public static final int DEFAULT_MAX_SUMMARY_LENGTH = 75;
 
 	private Config conf;
@@ -143,7 +144,7 @@ public class main {
 		
 
 		for (Doc d : m.documents) {
-			m.generateSummary(d, new ArticleTopicNGramSum(d, DEFAULT_MAX_SUMMARY_LENGTH));
+			m.generateSummary(d, new MostProbSentBasedOnTopicDocProb(d, DEFAULT_MAX_SUMMARY_LENGTH));
 			
 	
 		}

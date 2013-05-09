@@ -79,6 +79,17 @@ public class Doc implements Summerizer {
 		if(presentWords==null){
 			initPresentWords();
 		}
+		if(quer.indexOf(" ")!=-1){
+			String [] splitup = quer.split("\\s");
+			int found =0;
+			for(String el : splitup){
+				if(this.contains(el.trim())){
+					found++;
+				}
+			}
+			return found==splitup.length;
+		}
+		
 		return presentWords.contains(quer);
 	}
 	public boolean containsAll(ArrayList<String> query){
@@ -98,6 +109,7 @@ public class Doc implements Summerizer {
 			initPresentWords();
 
 		for(String el : query){
+			String[] splitt = el.split("\\s");
 			if(this.contains(el)){
 				return true;
 			}
