@@ -70,7 +70,7 @@ public class Doc implements Summerizer {
 	}
 	
 	private void initPresentWords(){
-		String[] wordRay = cont.split("\\s"); 
+		String[] wordRay = cont.split(" "); 
 		for(String el : wordRay)
 			el=el.trim();	//TODO check if this actually changes the strings in wordRay 
 		presentWords = new HashSet<String>((Collection<String>)Arrays.asList(wordRay));
@@ -80,7 +80,7 @@ public class Doc implements Summerizer {
 			initPresentWords();
 		}
 		if(quer.indexOf(" ")!=-1){
-			String [] splitup = quer.split("\\s");
+			String [] splitup = quer.split(" ");
 			int found =0;
 			for(String el : splitup){
 				if(this.contains(el.trim())){
@@ -109,7 +109,7 @@ public class Doc implements Summerizer {
 			initPresentWords();
 
 		for(String el : query){
-			String[] splitt = el.split("\\s");
+			String[] splitt = el.split(" ");
 			if(this.contains(el)){
 				return true;
 			}

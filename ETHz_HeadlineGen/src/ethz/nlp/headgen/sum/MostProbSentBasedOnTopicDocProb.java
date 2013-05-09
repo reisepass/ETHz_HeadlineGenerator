@@ -4,6 +4,7 @@
 package ethz.nlp.headgen.sum;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -13,6 +14,10 @@ import java.util.TreeMap;
 
 import ethz.nlp.headgen.Doc;
 import ethz.nlp.headgen.Extractor;
+import ethz.nlp.headgen.lda.RawToLDA;
+import ethz.nlp.headgen.prob.DocNGramProbs;
+import ethz.nlp.headgen.prob.DocNGramSimple;
+import ethz.nlp.headgen.prob.NGramProbs;
 import ethz.nlp.headgen.prob.NgramLightFilter;
 import ethz.nlp.headgen.prob.NgramSimple;
 
@@ -41,13 +46,26 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 		for(int i=0;i<ngramLength-1;i++){
 			out.add(i, FirstSentSum.WILDCARD_STRING);
 		}
-		out.add(ngramLength-1, inp);
+		if(inp.indexOf(" ")!=-1){
+			for(String sepI : inp.split(" ")){
+				out.add(sepI);
+			}
+		}
+		else
+			out.add(ngramLength-1, inp);
 		return out;
 	}
 	
 	protected ArrayList<String> wildWithInpAtFront(String inp){
 		ArrayList<String> out = new ArrayList<String>(ngramLength);
-		out.add(0, inp);
+		
+		if(inp.indexOf(" ")!=-1){
+			for(String sepI : inp.split(" ")){
+				out.add(sepI);
+			}
+		}
+		else
+			out.add(0, inp);
 		for(int i=1;i<ngramLength;i++){
 			out.add(i, FirstSentSum.WILDCARD_STRING);
 		}
@@ -57,21 +75,28 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 	public String summary() {
 		
 		StringBuilder strBld = new StringBuilder();
-		String out="##################################### #";
-		testData();  //TODO <- Instead of doing this we need to save the real topicWeighted ngrams for this article to var topicWeightedNgrams
-		ngramLength=topicWeightedNgrams.firstEntry().getKey().size();
+		String out="######################################";
+		//testData();  //TODO <- Instead of doing this we need to save the real topicWeighted ngrams for this article to var topicWeightedNgrams		
+		//ngramLength=topicWeightedNgrams.firstEntry().getKey().size();
 		
-		NgramLightFilter topicNgrams = new NgramLightFilter(topicWeightedNgrams,ngramLength,1);
+	
+		//NgramLightFilter topicNgrams = new NgramLightFilter(topicWeightedNgrams,ngramLength,1);
+		DocNGramProbs ngramMaker = new DocNGramSimple(3);
+		NGramProbs topicNgrams = ngramMaker.getProbs(doc.cont);
 		
 		Comparator<ArrayList<String>> CompareObj=  new Comparator<ArrayList<String>>(){
 			public int compare(ArrayList<String> o1, ArrayList<String> o2) {
-				
+			
 					if(o1.size()!=o2.size()){
 						int size = o1.size();
 						if(o2.size()< o1.size())
 							size=o2.size();
 						int result=0;
 						for(int i=0; i<size;i++){
+							if(o1.get(i).equals(FirstSentSum.WILDCARD_STRING))
+								continue;
+							if(o2.get(i).equals(FirstSentSum.WILDCARD_STRING))
+								continue;
 							if(o1.get(i).equals(o2.get(i)))
 								continue;
 							else
@@ -81,7 +106,11 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 							return result;
 						}
 						else{
-							for(int j=size-1; j<=0 ; j--){
+							for(int j=size-1; j>=0 ; j--){
+								if(o1.get(j).equals(FirstSentSum.WILDCARD_STRING))
+									continue;
+								if(o2.get(j).equals(FirstSentSum.WILDCARD_STRING))
+									continue;
 								if(o1.get(j).equals(o2.get(j)))
 									continue;
 								else
@@ -133,10 +162,25 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 		    
 		String[] topNE = extr.rankedNameEntityCount(5);
 		String lastAdded = "";
+		ArrayList<String> topNE_rl = new ArrayList<String>(Arrays.asList(topNE));
 		
-		if(topNE[0]!=null){ // adding describter for the top NE
+		for(int i =0; i<topNE_rl.size();i++){
+			if(topNE_rl.get(i)!=null){
+
+				topNE_rl.set(i,RawToLDA.convert(topNE_rl.get(i)));
 			
-			ArrayList<String> begin = wildWithInpAtBack(topNE[0]);
+			}
+		}
+		
+		
+		if(topNE_rl.get(0)!=null){ // adding describers for the top NE
+
+
+			
+			ArrayList<String> begin = wildWithInpAtBack(topNE_rl.get(0));
+			
+			
+			
 			boolean found=false;
 			
 			for(Map.Entry<ArrayList<String>, Double> elem : list){	// OMG This may read through the entire library	
@@ -150,7 +194,7 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 		
 			//TODO Now i want to add the most used verb // Need some more code for that in Extractor
 			//Instead i am jsut going to look for the best ngram that begins with the TopNE
-			ArrayList<String> next = wildWithInpAtFront(topNE[0]);
+			ArrayList<String> next = wildWithInpAtFront(topNE_rl.get(0));
 
 			for(Map.Entry<ArrayList<String>, Double> elem : list){	// OMG This may read through the entire library	
 				if(CompareObj.compare(elem.getKey(),next)==0){
@@ -164,8 +208,8 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 		}
 		//TODO It would be best if we have a verb connecting the top most used NE 
 		
-		if(topNE[1]!=null){
-			ArrayList<String> begin = wildWithInpAtBack(topNE[1]);
+		if(topNE_rl.get(1)!=null){
+			ArrayList<String> begin = wildWithInpAtBack(topNE_rl.get(1));
 				for(Map.Entry<ArrayList<String>, Double> elem : list){	// OMG This may read through the entire library	
 				if(CompareObj.compare(elem.getKey(),begin)==0){
 					strBld.append(printArray(elem.getKey()));	//I hope this ngram would describe the NE since it comes before
@@ -174,7 +218,7 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 				}
 			}
 		
-			ArrayList<String> next = wildWithInpAtFront(topNE[1]);
+			ArrayList<String> next = wildWithInpAtFront(topNE_rl.get(1));
 			
 			
 			for(Map.Entry<ArrayList<String>, Double> elem : list){	// OMG This may read through the entire library	
@@ -188,17 +232,18 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 			}
 		}
 		out = strBld.toString();
-		String[] wordsSoFar  = strBld.toString().split("\\s");
+		String[] wordsSoFar  = strBld.toString().split(" ");
 		String justAdded= wordsSoFar[wordsSoFar.length-1];
-		  while(  strBld.length()>sumLeng   ){ 
+		  while(  strBld.length()<sumLeng   ){ 
 			  for(Map.Entry<ArrayList<String>, Double> elem : list){	// OMG This may read through the entire library	
-				
+				  if(elem.getKey().size()>1){
 					if(CompareObj.compare(elem.getKey(),wildWithInpAtFront(justAdded))==0){
 						elem.getKey().remove(0);// If we dont do this then the TopNE[0] will appear twice
 						strBld.append(printArray(elem.getKey()));
-						wordsSoFar  = strBld.toString().split("\\s");
+						wordsSoFar  = strBld.toString().split(" ");
 						justAdded= wordsSoFar[wordsSoFar.length-1];
 					}
+				  }
 			  }
 			  strBld.append(" ");
 			if(strBld.length()>sumLeng){ //Remove words that done fit and we are done

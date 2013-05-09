@@ -100,7 +100,11 @@ public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
 		tmpEl = new ArrayList<String>();
 		tmpEl.add("final"); tmpEl.add("exam");
 		topicWeightedNgrams.put(tmpEl,0.3 );
-		
+		tmpFunc("Ruben Wolff", "is");
+		tmpFunc("is","super");
+		tmpFunc("super","cool");
+		tmpFunc("super","man!");
+		tmpFunc("YOur Friend, ", "Ruben Wolff");
 	}
 	protected void testData(){
 		topicWeightedNgrams = new  TreeMap<ArrayList<String>, Double>(new Comparator() {
@@ -108,7 +112,7 @@ public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
 	              return  o1.toString().compareTo(o2.toString());
 	         }
 	    });
-	
+		testData2();
 		tmpFunc("Cambodian","leader");
 		tmpFunc("leader", "Hun");
 		tmpFunc("Hun", "Sen");
