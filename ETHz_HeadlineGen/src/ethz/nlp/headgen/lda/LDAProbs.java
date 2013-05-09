@@ -1,6 +1,13 @@
 package ethz.nlp.headgen.lda;
 
 public interface LDAProbs {
+
+	public int getNumTopics();
+
+	public String[] getWordList();
+
+	public String[] getDocList();
+
 	/**
 	 * Returns the probability P(word | topic)
 	 * 

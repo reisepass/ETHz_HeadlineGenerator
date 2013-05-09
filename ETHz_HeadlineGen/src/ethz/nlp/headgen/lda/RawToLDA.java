@@ -38,7 +38,7 @@ public class RawToLDA {
 		String lemma;
 		for (CoreLabel token : tokens) {
 			lemma = token.get(LemmaAnnotation.class);
-			if (ACCEPT_PATTERN.matcher(lemma).matches()) {
+			if (ACCEPT_PATTERN.matcher(lemma).matches() && lemma.length() >= 3) {
 				lemmas.add(lemma);
 			}
 		}

@@ -13,25 +13,44 @@ import ethz.nlp.headgen.util.ConfigFactory;
 public class LDAProbsLoader {
 	public static final String WORD_TOPIC_SUFFIX = "-final.phi";
 	public static final String TOPIC_DOC_SUFFIX = "-final.theta";
+	public static final String WORDMAP = "wordmap.txt";
+	public static final String DOCMAP = "docmap.txt";
 
 	private LDAProbsLoader() {
 	}
 
-	// TODO: Need to load the word map into an array to associate words with
-	// their IDs
 	public static LDAProbs loadLDAProbs(File modelDir) throws IOException {
 		return loadLDAProbs(modelDir, "model");
 	}
 
 	public static LDAProbs loadLDAProbs(File modelDir, String modelName)
 			throws IOException {
-		LDAProbsImpl ldaProbs = new LDAProbsImpl();
-		String[] wordList = getWordList(modelDir);
+		LDAProbsImpl ldaProbs = new LDAProbsImpl(getWordList(modelDir),
+				getDocList(modelDir));
 		loadWordTopicProbs(ldaProbs, new File(modelDir, modelName
-				+ WORD_TOPIC_SUFFIX), wordList);
+				+ WORD_TOPIC_SUFFIX));
 		loadTopicDocProbs(ldaProbs, new File(modelDir, modelName
 				+ TOPIC_DOC_SUFFIX));
 		return ldaProbs;
+	}
+
+	private static String[] getDocList(File modelDir) throws IOException {
+		BufferedReader br = null;
+		int index = 0;
+		String line;
+		String[] docs;
+		try {
+			br = new BufferedReader(new FileReader(new File(modelDir, DOCMAP)));
+			docs = new String[Integer.parseInt(br.readLine())];
+			while ((line = br.readLine()) != null) {
+				docs[index++] = line;
+			}
+		} finally {
+			if (br != null) {
+				br.close();
+			}
+		}
+		return docs;
 	}
 
 	private static String[] getWordList(File modelDir) throws IOException {
@@ -41,8 +60,7 @@ public class LDAProbsLoader {
 		String[] vals;
 		String[] words;
 		try {
-			br = new BufferedReader(new FileReader(new File(modelDir,
-					"wordmap.txt")));
+			br = new BufferedReader(new FileReader(new File(modelDir, WORDMAP)));
 			length = Integer.parseInt(br.readLine());
 			words = new String[length];
 			while ((line = br.readLine()) != null) {
@@ -59,8 +77,8 @@ public class LDAProbsLoader {
 	}
 
 	// FORMAT: Each line is a topic, each column is a word in the vocabulary
-	private static void loadWordTopicProbs(LDAProbsImpl ldaProbs, File file,
-			String[] wordList) throws IOException {
+	private static void loadWordTopicProbs(LDAProbsImpl ldaProbs, File file)
+			throws IOException {
 		BufferedReader br = null;
 		String line;
 		String[] vals;
@@ -70,21 +88,39 @@ public class LDAProbsLoader {
 			while ((line = br.readLine()) != null) {
 				vals = line.split(" ");
 				for (int i = 0; i < vals.length; i++) {
-					ldaProbs.putWordTopic(wordList[i], topic,
-							Double.parseDouble(vals[i]));
+					ldaProbs.putWordTopic(i, topic, Double.parseDouble(vals[i]));
 				}
 				topic++;
+			}
+			ldaProbs.numTopics = topic;
+		} finally {
+			if (br != null) {
+				br.close();
+			}
+		}
+	}
+
+	// FORMAT: Each line is a document and each column is a topic
+	private static void loadTopicDocProbs(LDAProbsImpl ldaProbs, File file)
+			throws IOException {
+		BufferedReader br = null;
+		String line;
+		String[] vals;
+		int doc = 0;
+		try {
+			br = new BufferedReader(new FileReader(file));
+			while ((line = br.readLine()) != null) {
+				vals = line.split(" ");
+				for (int i = 0; i < vals.length; i++) {
+					ldaProbs.putTopicDoc(i, doc, Double.parseDouble(vals[i]));
+				}
+				doc++;
 			}
 		} finally {
 			if (br != null) {
 				br.close();
 			}
 		}
-
-	}
-
-	private static void loadTopicDocProbs(LDAProbsImpl ldaProbs, File file) {
-		// TODO: Need a way to link the document # to the doc name
 	}
 
 	private static class LDAProbsImpl implements LDAProbs {
@@ -92,13 +128,21 @@ public class LDAProbsLoader {
 				new DefaultCharArrayNodeFactory());
 		private ConcurrentRadixTree<Double> topicDocProbs = new ConcurrentRadixTree<Double>(
 				new DefaultCharArrayNodeFactory());
+		private String[] wordList;
+		private String[] docList;
+		private int numTopics;
 
-		protected void putWordTopic(String word, int topic, Double prob) {
-			wordTopicProbs.put(getKey(word, "" + topic), prob);
+		public LDAProbsImpl(String[] wordList, String[] docList) {
+			this.wordList = wordList;
+			this.docList = docList;
 		}
 
-		protected void putTopicDoc(int topic, String doc, Double prob) {
-			topicDocProbs.put(getKey("" + topic, doc), prob);
+		protected void putWordTopic(int word, int topic, Double prob) {
+			wordTopicProbs.put(getKey(wordList[word], "" + topic), prob);
+		}
+
+		protected void putTopicDoc(int topic, int doc, Double prob) {
+			topicDocProbs.put(getKey("" + topic, docList[doc]), prob);
 		}
 
 		private String getKey(String desired, String given) {
@@ -114,12 +158,29 @@ public class LDAProbsLoader {
 		public double getTopicDocProb(int topic, String doc) {
 			return topicDocProbs.getValueForExactKey(getKey("" + topic, doc));
 		}
+
+		@Override
+		public String[] getWordList() {
+			return wordList;
+		}
+
+		@Override
+		public String[] getDocList() {
+			return docList;
+		}
+
+		@Override
+		public int getNumTopics() {
+			return numTopics;
+		}
 	}
 
 	public static void main(String[] args) throws IOException {
 		LDAConfig config = ConfigFactory.loadConfiguration(LDAConfig.class,
 				"./conf/lda-baseModel.conf");
 		LDAProbs probs = loadLDAProbs(new File(config.getModelDir()));
-		System.out.println("STOP");
+		System.out.println(probs.getNumTopics());
+		System.out.println(probs.getWordTopicProb(probs.getWordList()[0], 0));
+		System.out.println(probs.getTopicDocProb(0, probs.getDocList()[0]));
 	}
 }
