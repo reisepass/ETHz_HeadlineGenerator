@@ -19,7 +19,7 @@ public class NgramLightFilter extends NgramSimple implements NGramProbs {
 	public NgramLightFilter(TreeMap<ArrayList<String>, Double> inNgrams, int N) {
 		super(inNgrams, N);
 		// TODO Auto-generated constructor stub
-	}
+	} 
 	/**
 	 * 
 	 * @param inNgrams
@@ -39,7 +39,6 @@ public class NgramLightFilter extends NgramSimple implements NGramProbs {
 
 		return filterNgrams(doc,(Comparator<ArrayList<String>>)ngramFreq.comparator());
 	}
-	// Smallchange
 	public TreeMap<ArrayList<String>,Double> filterNgrams(Doc doc, Comparator<ArrayList<String>> comp){  //TODO paramaterize Comparator in this method
 		
 		
