@@ -6,6 +6,7 @@ import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFa
 
 public class WordCountTree extends ConcurrentRadixTree<WordCount> {
 	private WordCount max = new WordCount();
+	private long total = 0;
 
 	public WordCountTree() {
 		this(new DefaultCharArrayNodeFactory());
@@ -28,10 +29,15 @@ public class WordCountTree extends ConcurrentRadixTree<WordCount> {
 				max = val;
 			}
 		}
+		total++;
 		return val;
 	}
 
 	public int getMax() {
 		return max.getCount();
+	}
+
+	public long getTotal() {
+		return total;
 	}
 }

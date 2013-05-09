@@ -15,7 +15,11 @@ public interface NGramProbs {
 	 * @return
 	 */
 	public double getProb(String... words);
-	public TreeMap<ArrayList<String>,Double> filterNgrams(Doc DOC);
+
+	// it takes the big ngram library and restricts it to only ngrams that are
+	// related to the document
+	public TreeMap<ArrayList<String>, Double> filterNgrams(Doc DOC);
+
 	/**
 	 * Take list of strings and return the probability that sequence of words
 	 * occurred
