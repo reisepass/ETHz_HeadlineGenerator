@@ -109,7 +109,7 @@ public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
 		
 	}
 	
-	
+	// Smallchange
 	// Very basic method simply listing the top most likely ngrams in a row to fill up the character limit. 
 	public String summary() {
 			StringBuilder strBld = new StringBuilder();

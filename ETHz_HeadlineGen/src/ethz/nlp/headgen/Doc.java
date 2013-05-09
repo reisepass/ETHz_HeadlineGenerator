@@ -80,7 +80,8 @@ public class Doc implements Summerizer {
 			initPresentWords();
 		}
 		return presentWords.contains(quer);
-	}
+	} 
+	// Smallchange
 	public boolean containsAll(ArrayList<String> query){
 		if(presentWords==null)
 			initPresentWords();
