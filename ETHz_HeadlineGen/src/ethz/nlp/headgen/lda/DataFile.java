@@ -31,7 +31,7 @@ public class DataFile {
 			dataFileWriter.write(dir.list().length + "\n");
 			for (File f : dir.listFiles()) {
 				try {
-					docMapWriter.write(f.getName() + "\n");
+					docMapWriter.write(f.getPath() + "\n");
 					text = FileIO.readTextFile(f);
 					dataFileWriter.write(RawToLDA.convert(text) + "\n");
 				} catch (IOException e) {

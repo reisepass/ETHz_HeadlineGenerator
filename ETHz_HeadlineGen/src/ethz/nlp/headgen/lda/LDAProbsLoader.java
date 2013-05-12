@@ -4,6 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import com.googlecode.concurrenttrees.radix.ConcurrentRadixTree;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
@@ -193,8 +197,29 @@ public class LDAProbsLoader {
 		LDAConfig config = ConfigFactory.loadConfiguration(LDAConfig.class,
 				"./conf/lda-baseModel.conf");
 		LDAProbs probs = loadLDAProbs(new File(config.getModelDir()));
-		System.out.println(probs.getNumTopics());
-		System.out.println(probs.getWordTopicProb(probs.getWordList()[0], 0));
-		System.out.println(probs.getTopicDocProb(0, probs.getDocList()[0]));
+		DocCluster cluster = new DocCluster(probs);
+		List<String>[] clusters = cluster.getDocClusters();
+		int count = 1;
+		int topic = 0;
+		for (List<String> c : clusters) {
+			if (c.size() > 10) {
+				topic = count-1;
+			}
+			System.out.println("Cluster " + (count++) + " has " + c.size()
+					+ " docs");
+		}
+		
+		System.err.println("Getting cluster ngram probs");
+		TreeMap<ArrayList<String>, Double> ngrams = cluster
+				.getClusterNgramProbs(topic, 2);
+		for (Entry<ArrayList<String>, Double> e : ngrams.entrySet()) {
+			System.out.println("Key: " + e.getKey());
+			System.out.println("Value: " + e.getValue());
+			break;
+		}
+		// System.out.println(probs.getNumTopics());
+		// System.out.println(probs.getWordTopicProb(probs.getWordList()[0],
+		// 0));
+		// System.out.println(probs.getTopicDocProb(0, probs.getDocList()[0]));
 	}
 }

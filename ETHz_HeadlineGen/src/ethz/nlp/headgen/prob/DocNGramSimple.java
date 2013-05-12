@@ -3,14 +3,12 @@ package ethz.nlp.headgen.prob;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 import java.util.TreeMap;
 
 import com.googlecode.concurrenttrees.common.KeyValuePair;
 
 import ethz.nlp.headgen.data.WordCount;
 import ethz.nlp.headgen.data.WordCountTree;
-import ethz.nlp.headgen.lda.RawToLDA;
 
 public class DocNGramSimple implements DocNGramProbs {
 	private int n;
@@ -20,7 +18,7 @@ public class DocNGramSimple implements DocNGramProbs {
 	}
 
 	@Override
-	public TreeMap<ArrayList<String>, Double>  getProbs(String docText) {
+	public TreeMap<ArrayList<String>, Double> getProbs(String docText) {
 		TreeMap<ArrayList<String>, Double> ngrams = new TreeMap<ArrayList<String>, Double>(
 				new Comparator<ArrayList<String>>() {
 					@Override
@@ -30,11 +28,8 @@ public class DocNGramSimple implements DocNGramProbs {
 					}
 				});
 
-		// Clean the text by converting it into the LDA format
-		String cleanedText = RawToLDA.convert(docText);
-
 		// Add the cleaned ngrams to the ngram tree
-		String[] words = cleanedText.split(" ");
+		String[] words = docText.split(" ");
 		WordCountTree ngramCounts = getCounts(words);
 		double val;
 		for (KeyValuePair<WordCount> pair : ngramCounts
@@ -80,5 +75,4 @@ public class DocNGramSimple implements DocNGramProbs {
 		return sb.toString();
 	}
 
-	
 }
