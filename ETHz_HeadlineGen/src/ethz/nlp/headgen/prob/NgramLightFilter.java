@@ -9,7 +9,7 @@ import ethz.nlp.headgen.Doc;
 
 public class NgramLightFilter extends NgramSimple implements NGramProbs {
 
-	private int filterType = 1;
+	protected int filterType = 1;
 	
 	public NgramLightFilter(TreeMap<ArrayList<String>, Double> inNgrams) {
 		super(inNgrams);
