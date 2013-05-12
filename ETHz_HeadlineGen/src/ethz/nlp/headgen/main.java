@@ -15,6 +15,8 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import ethz.nlp.headgen.io.IOConfig;
 import ethz.nlp.headgen.io.ParsedDocReader;
 import ethz.nlp.headgen.io.ParsedDocWriter;
+import ethz.nlp.headgen.lda.DocCluster;
+import ethz.nlp.headgen.lda.LDAProbsLoader;
 import ethz.nlp.headgen.rouge.RougeEvalBuilder;
 import ethz.nlp.headgen.rouge.RougeResults;
 import ethz.nlp.headgen.rouge.RougeScript;
@@ -128,8 +130,9 @@ public class main {
 		 * + ":" + val); // } // for (String s : sortedVals) { //
 		 * System.out.println("\t" + s); // }
 		 */
-
+	
 		for (Doc d : m.documents) {
+			
 			m.generateSummary(d, new MostProbSentBasedOnTopicDocProb(d,
 					DEFAULT_MAX_SUMMARY_LENGTH));
 
