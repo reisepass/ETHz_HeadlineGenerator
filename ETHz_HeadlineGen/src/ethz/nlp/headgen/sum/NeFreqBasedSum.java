@@ -36,7 +36,7 @@ public class NeFreqBasedSum extends FirstSentSum implements Summerizer {
 	 */
 	private CoreMap findImpSent() {
 		String[] topNE = extr.rankedNameEntityCount(5);
-		Iterator<CoreMap> sentItr = anot.get(SentencesAnnotation.class).iterator();
+		Iterator<CoreMap> sentItr = doc.getAno().get(SentencesAnnotation.class).iterator();
 
 		String bestSentSofar = "";
 		CoreMap best = null;

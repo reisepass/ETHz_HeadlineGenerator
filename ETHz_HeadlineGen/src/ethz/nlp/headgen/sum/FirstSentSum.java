@@ -29,13 +29,11 @@ public class FirstSentSum implements Summerizer {
 	public static final String[] CLEAN_WORDS = OPEN_CLASS_POS;
 
 	protected Doc doc;
-	protected Annotation anot;
 	protected int sumLeng;
 	protected String firstSent;
 
 	public FirstSentSum(Doc doc, int summaryLength) {
 		this.doc = doc;
-		this.anot = doc.getAno();
 		this.sumLeng = summaryLength;
 	}
 
@@ -64,8 +62,12 @@ public class FirstSentSum implements Summerizer {
 		return out;
 	}
 
+	public void setDoc(Doc inD){
+		doc=inD;
+	}
+	
 	protected CoreMap findFirstSent() {
-		CoreMap sentence = anot.get(SentencesAnnotation.class).get(0);
+		CoreMap sentence = doc.getAno().get(SentencesAnnotation.class).get(0);
 		return sentence;
 	}
 
