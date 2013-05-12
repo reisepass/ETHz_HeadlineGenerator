@@ -22,6 +22,7 @@ import ethz.nlp.headgen.rouge.RougeResults;
 import ethz.nlp.headgen.rouge.RougeScript;
 import ethz.nlp.headgen.sum.ArticleTopicNGramSum;
 import ethz.nlp.headgen.sum.MostProbSentBasedOnTopicDocProb;
+import ethz.nlp.headgen.sum.MostProbSentSimpleGreedy;
 import ethz.nlp.headgen.sum.NeFreqBasedSum;
 import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.util.ConfigFactory;
@@ -130,25 +131,41 @@ public class main {
 		 * + ":" + val); // } // for (String s : sortedVals) { //
 		 * System.out.println("\t" + s); // }
 		 */
+		
+		DocCluster corpCluster = new DocCluster(LDAProbsLoader.loadLDAProbs(ioConf.getModelDir()));
 	
-		for (Doc d : m.documents) {
+
+		
+			for (Doc d : m.documents) {
+				
+					
+				
+				ArrayList<Summerizer> sumList=new ArrayList<Summerizer>();
+				sumList.add(new ArticleTopicNGramSum(d,DEFAULT_MAX_SUMMARY_LENGTH ));
+				sumList.add(new NeFreqBasedSum(d, DEFAULT_MAX_SUMMARY_LENGTH));
+				sumList.add(new MostProbSentBasedOnTopicDocProb(d,DEFAULT_MAX_SUMMARY_LENGTH));
+				sumList.add(new MostProbSentSimpleGreedy(d, DEFAULT_MAX_SUMMARY_LENGTH, corpusNgramsAndProbs));
+				
+				for(Summerizer smrz : sumList){
+					
+				}
+				
+				
+				m.generateSummary(d, smrz);	
+			}
+		
+	
+			String rougeInFile = "ROUGE-IN.xml";
+			m.writeSummaries();
+			RougeEvalBuilder reb = m.genRouge();
+			reb.write(rougeInFile);
+	
+			RougeScript rs = new RougeScript(conf.getRougePath(), 95, 500, 2, 1.2);
+			RougeResults results = rs.run(rougeInFile);
 			
-			m.generateSummary(d, new MostProbSentBasedOnTopicDocProb(d,
-					DEFAULT_MAX_SUMMARY_LENGTH));
-
+			System.out.println(results.toString());
+			
 		}
-		for (Doc d : m.documents) {
-			System.out.println(d.summary);
-		}
-
-		String rougeInFile = "ROUGE-IN.xml";
-		m.writeSummaries();
-		RougeEvalBuilder reb = m.genRouge();
-		reb.write(rougeInFile);
-
-		RougeScript rs = new RougeScript(conf.getRougePath(), 95, 500, 2, 1.2);
-		RougeResults results = rs.run(rougeInFile);
-		System.out.println(results.toString());
 	}
 
 	private RougeEvalBuilder genRouge() throws IOException {
