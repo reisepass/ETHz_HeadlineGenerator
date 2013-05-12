@@ -16,6 +16,7 @@ import ethz.nlp.headgen.io.IOConfig;
 import ethz.nlp.headgen.io.ParsedDocReader;
 import ethz.nlp.headgen.io.ParsedDocWriter;
 import ethz.nlp.headgen.rouge.RougeEvalBuilder;
+import ethz.nlp.headgen.rouge.RougeResults;
 import ethz.nlp.headgen.rouge.RougeScript;
 import ethz.nlp.headgen.sum.ArticleTopicNGramSum;
 import ethz.nlp.headgen.sum.MostProbSentBasedOnTopicDocProb;
@@ -25,7 +26,7 @@ import ethz.nlp.headgen.util.ConfigFactory;
 import ethz.nlp.headgen.xml.XMLDoc;
 
 public class main {
- 
+
 	public static final int DEFAULT_MAX_SUMMARY_LENGTH = 75;
 
 	private Config conf;
@@ -96,10 +97,6 @@ public class main {
 	// return document;
 	// }
 
-	
-	
-	
-	
 	/**
 	 * @param args
 	 * @throws IOException
@@ -115,50 +112,40 @@ public class main {
 		m.loadFiles();
 
 		/*
-		// System.out.println("Generating corpus word counts");
-		// CorpusCounts counts = CorpusCounts.generateCounts(m.documents);
-		// System.out.println("--TF-IDF Values--");
-		// SortedSet<String> sortedVals = new TreeSet<String>(
-		// new Comparator<String>() {
-		// @Override
-		// public int compare(String o1, String o2) {
-		// double val1 = Double.parseDouble(o1.substring(o1
-		// .lastIndexOf(":") + 1));
-		// double val2 = Double.parseDouble(o2.substring(o2
-		// .lastIndexOf(":") + 1));
-		// return Double.compare(val2, val1);
-		// }
-		// });
-		// String word;
-		// double val;
-		// for (CoreLabel token : m.documents.get(0).annotation
-		// .get(TokensAnnotation.class)) {
-		// word = token.getString(TextAnnotation.class);
-		// val = TF_IDF.calc(word, m.documents.get(0), counts);
-		// sortedVals.add(word + ":" + val);
-		// }
-		// for (String s : sortedVals) {
-		// System.out.println("\t" + s);
-		// }
+		 * // System.out.println("Generating corpus word counts"); //
+		 * CorpusCounts counts = CorpusCounts.generateCounts(m.documents); //
+		 * System.out.println("--TF-IDF Values--"); // SortedSet<String>
+		 * sortedVals = new TreeSet<String>( // new Comparator<String>() { //
+		 * 
+		 * @Override // public int compare(String o1, String o2) { // double
+		 * val1 = Double.parseDouble(o1.substring(o1 // .lastIndexOf(":") + 1));
+		 * // double val2 = Double.parseDouble(o2.substring(o2 //
+		 * .lastIndexOf(":") + 1)); // return Double.compare(val2, val1); // }
+		 * // }); // String word; // double val; // for (CoreLabel token :
+		 * m.documents.get(0).annotation // .get(TokensAnnotation.class)) { //
+		 * word = token.getString(TextAnnotation.class); // val =
+		 * TF_IDF.calc(word, m.documents.get(0), counts); // sortedVals.add(word
+		 * + ":" + val); // } // for (String s : sortedVals) { //
+		 * System.out.println("\t" + s); // }
 		 */
-		
 
 		for (Doc d : m.documents) {
-			m.generateSummary(d, new MostProbSentBasedOnTopicDocProb(d, DEFAULT_MAX_SUMMARY_LENGTH));
-			
-	
+			m.generateSummary(d, new MostProbSentBasedOnTopicDocProb(d,
+					DEFAULT_MAX_SUMMARY_LENGTH));
+
 		}
 		for (Doc d : m.documents) {
 			System.out.println(d.summary);
 		}
 
-		String rougeInFile = "ROUGE-IN.xml", rougeOutFile = "TestOutput";
+		String rougeInFile = "ROUGE-IN.xml";
 		m.writeSummaries();
 		RougeEvalBuilder reb = m.genRouge();
 		reb.write(rougeInFile);
 
 		RougeScript rs = new RougeScript(conf.getRougePath(), 95, 500, 2, 1.2);
-		rs.run(rougeInFile, rougeOutFile);
+		RougeResults results = rs.run(rougeInFile);
+		System.out.println(results.toString());
 	}
 
 	private RougeEvalBuilder genRouge() throws IOException {
@@ -244,7 +231,7 @@ public class main {
 			genAnnotation(doc);
 			saveAnnotation(doc, anotFile);
 		} else {
-			doc.setAno( ParsedDocReader.read(anotFile));
+			doc.setAno(ParsedDocReader.read(anotFile));
 		}
 	}
 
