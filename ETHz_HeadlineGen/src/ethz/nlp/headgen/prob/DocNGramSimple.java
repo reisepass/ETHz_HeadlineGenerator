@@ -20,7 +20,7 @@ public class DocNGramSimple implements DocNGramProbs {
 	}
 
 	@Override
-	public NGramProbs getProbs(String docText) {
+	public TreeMap<ArrayList<String>, Double>  getProbs(String docText) {
 		TreeMap<ArrayList<String>, Double> ngrams = new TreeMap<ArrayList<String>, Double>(
 				new Comparator<ArrayList<String>>() {
 					@Override
@@ -47,7 +47,7 @@ public class DocNGramSimple implements DocNGramProbs {
 							.toString().split(":"))), val);
 		}
 
-		return new NgramLightFilter(ngrams, n);
+		return ngrams;
 	}
 
 	private WordCountTree getCounts(String[] words) {
@@ -80,16 +80,5 @@ public class DocNGramSimple implements DocNGramProbs {
 		return sb.toString();
 	}
 
-	public static void main(String[] args) {
-		DocNGramSimple simple = new DocNGramSimple(2);
-		NGramProbs probs = simple
-				.getProbs("My name is Herp Derp Niederhauser.  It is Herp Derp");
-		List<String> test = new ArrayList<String>(2);
-		test.add("herp");
-		test.add("Derp");
-		// TODO: There seems to be an issue if the words are not all in lower
-		// case
-		double val = probs.getProb(test);
-		System.out.println(val);
-	}
+	
 }

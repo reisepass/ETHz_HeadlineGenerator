@@ -10,9 +10,11 @@ import ethz.nlp.headgen.Doc;
 public class CorpPlusQueryDocNgrams extends NgramLightFilter implements
 		NGramProbs {
 	protected double qDocNgramWeights;
+	
+	
 	public CorpPlusQueryDocNgrams(TreeMap<ArrayList<String>, Double> inNgrams) {
 		super(inNgrams);
-		qDocNgramWeights=0.1;
+		qDocNgramWeights=1.5;
 		// TODO Auto-generated constructor stub
 	}
 
@@ -25,7 +27,7 @@ public class CorpPlusQueryDocNgrams extends NgramLightFilter implements
 	public CorpPlusQueryDocNgrams(TreeMap<ArrayList<String>, Double> inNgrams,
 			int N) {
 		super(inNgrams, N);
-		qDocNgramWeights=0.1;
+		qDocNgramWeights=1.5;
 		// TODO Auto-generated constructor stub
 	}
 
@@ -33,7 +35,7 @@ public class CorpPlusQueryDocNgrams extends NgramLightFilter implements
 			int N, int filterCode) {
 		super(inNgrams, N, filterCode);
 		
-		qDocNgramWeights=0.1;
+		qDocNgramWeights=1.5;
 		// TODO Auto-generated constructor stub
 	}
 	public CorpPlusQueryDocNgrams(TreeMap<ArrayList<String>, Double> inNgrams,
@@ -63,8 +65,8 @@ public class CorpPlusQueryDocNgrams extends NgramLightFilter implements
 		
 		
 		DocNGramProbs ngramMaker = new DocNGramSimple(n);
-		NGramProbs topicNgrams = ngramMaker.getProbs(doc.cont);
-		TreeMap<ArrayList<String>, Double> docNgrams = topicNgrams.filterNgrams(doc);
+		TreeMap<ArrayList<String>, Double> topicNgrams = ngramMaker.getProbs(doc.cont);
+		TreeMap<ArrayList<String>, Double> docNgrams = new NgramLightFilter(topicNgrams,n).filterNgrams(doc);
 		for(Map.Entry<ArrayList<String>, Double> ele : docNgrams.entrySet()){
 			outNgram.put(ele.getKey(),ele.getValue()*qDocNgramWeights);
 		}

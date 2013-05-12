@@ -12,9 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import ethz.nlp.headgen.Constants;
 import ethz.nlp.headgen.Doc;
 import ethz.nlp.headgen.Extractor;
 import ethz.nlp.headgen.lda.RawToLDA;
+import ethz.nlp.headgen.prob.CorpPlusQueryDocNgrams;
 import ethz.nlp.headgen.prob.DocNGramProbs;
 import ethz.nlp.headgen.prob.DocNGramSimple;
 import ethz.nlp.headgen.prob.NGramProbs;
@@ -82,74 +84,15 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 	
 		//NgramLightFilter topicNgrams = new NgramLightFilter(topicWeightedNgrams,ngramLength,1);
 		DocNGramProbs ngramMaker = new DocNGramSimple(3);
-		NGramProbs topicNgrams = ngramMaker.getProbs(doc.cont);
-		
-		Comparator<ArrayList<String>> CompareObj=  new Comparator<ArrayList<String>>(){
-			public int compare(ArrayList<String> o1, ArrayList<String> o2) {
-			
-					if(o1.size()!=o2.size()){
-						int size = o1.size();
-						if(o2.size()< o1.size())
-							size=o2.size();
-						int result=0;
-						for(int i=0; i<size;i++){
-							if(o1.get(i).equals(FirstSentSum.WILDCARD_STRING))
-								continue;
-							if(o2.get(i).equals(FirstSentSum.WILDCARD_STRING))
-								continue;
-							if(o1.get(i).equals(o2.get(i)))
-								continue;
-							else
-								result = o1.get(i).compareTo(o2.get(i));
-						}
-						if(result==0){
-							return result;
-						}
-						else{
-							for(int j=size-1; j>=0 ; j--){
-								if(o1.get(j).equals(FirstSentSum.WILDCARD_STRING))
-									continue;
-								if(o2.get(j).equals(FirstSentSum.WILDCARD_STRING))
-									continue;
-								if(o1.get(j).equals(o2.get(j)))
-									continue;
-								else
-									result = o1.get(j).compareTo(o2.get(j));
-							}
-							return result;
-							
-						}
+		TreeMap<ArrayList<String>, Double> filterThis = ngramMaker.getProbs(doc.cont);
+		NGramProbs topicNgrams = new CorpPlusQueryDocNgrams(filterThis);
 	
-					}
-					else{
-						
-						for(int i=0;i<o1.size();i++){
-								if(o1.get(i).equals(FirstSentSum.WILDCARD_STRING))
-									continue;
-								if(o2.get(i).equals(FirstSentSum.WILDCARD_STRING))
-									continue;
-								if(o1.get(i).equals(o2.get(i)))
-									continue;
-								else
-									return o1.get(i).compareTo(o2.get(i));
-							
-						}
-						return 0;
-						
-						
-					}
-				
-				
-				
-            }} ;
-		
-		
+		    Comparator<ArrayList<String>> localCompareObj=Constants.CompareObj;
 		
 		
 		TreeMap<ArrayList<String>,Double> filtered = topicNgrams.filterNgrams(doc);
 			
-	
-		
+			
 		
 		 List< Map.Entry<ArrayList<String>, Double>> list = new LinkedList< Map.Entry<ArrayList<String>, Double>>(filtered.entrySet());
 		    Collections.sort(list, new Comparator() {
@@ -184,7 +127,7 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 			boolean found=false;
 			
 			for(Map.Entry<ArrayList<String>, Double> elem : list){	// OMG This may read through the entire library	
-				if(CompareObj.compare(elem.getKey(),begin)==0){
+				if(localCompareObj.compare(elem.getKey(),begin)==0){
 					strBld.append(printArray(elem.getKey()));	//I hope this ngram would describe the NE since it comes before
 					found=true;
 					lastAdded=elem.getKey().get(elem.getKey().size()-1);
@@ -197,7 +140,7 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 			ArrayList<String> next = wildWithInpAtFront(topNE_rl.get(0));
 
 			for(Map.Entry<ArrayList<String>, Double> elem : list){	// OMG This may read through the entire library	
-				if(CompareObj.compare(elem.getKey(),next)==0){
+				if(localCompareObj.compare(elem.getKey(),next)==0){
 					strBld.append(printArray(elem.getKey()));	//I hope this ngram would describe the NE since it comes before
 					elem.getKey().remove(0);// If we dont do this then the TopNE[0] will appear twice
 					lastAdded=elem.getKey().get(elem.getKey().size()-1);
@@ -211,7 +154,7 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 		if(topNE_rl.get(1)!=null){
 			ArrayList<String> begin = wildWithInpAtBack(topNE_rl.get(1));
 				for(Map.Entry<ArrayList<String>, Double> elem : list){	// OMG This may read through the entire library	
-				if(CompareObj.compare(elem.getKey(),begin)==0){
+				if(localCompareObj.compare(elem.getKey(),begin)==0){
 					strBld.append(printArray(elem.getKey()));	//I hope this ngram would describe the NE since it comes before
 					lastAdded=elem.getKey().get(elem.getKey().size()-1);
 					break;
@@ -222,7 +165,7 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 			
 			
 			for(Map.Entry<ArrayList<String>, Double> elem : list){	// OMG This may read through the entire library	
-				if(CompareObj.compare(elem.getKey(),next)==0){
+				if(localCompareObj.compare(elem.getKey(),next)==0){
 					elem.getKey().remove(0);// If we dont do this then the TopNE[0] will appear twice
 					strBld.append(printArray(elem.getKey()));	//I hope this ngram would describe the NE since it comes before
 					
@@ -234,10 +177,10 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 		out = strBld.toString();
 		String[] wordsSoFar  = strBld.toString().split(" ");
 		String justAdded= wordsSoFar[wordsSoFar.length-1];
-		  while(  strBld.length()<sumLeng   ){ 
+		while(  strBld.length()<sumLeng   ){ 
 			  for(Map.Entry<ArrayList<String>, Double> elem : list){	// OMG This may read through the entire library	
 				  if(elem.getKey().size()>1){
-					if(CompareObj.compare(elem.getKey(),wildWithInpAtFront(justAdded))==0){
+					if(localCompareObj.compare(elem.getKey(),wildWithInpAtFront(justAdded))==0){
 						elem.getKey().remove(0);// If we dont do this then the TopNE[0] will appear twice
 						strBld.append(printArray(elem.getKey()));
 						wordsSoFar  = strBld.toString().split(" ");
