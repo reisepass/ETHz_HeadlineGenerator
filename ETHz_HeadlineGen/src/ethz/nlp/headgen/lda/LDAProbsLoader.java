@@ -28,21 +28,30 @@ public class LDAProbsLoader {
 	}
 
 	public static LDAProbs loadLDAProbs(File modelDir) throws IOException {
-		return loadLDAProbs(modelDir, "model");
-	}
+		String modelName = "model";
 
-	public static LDAProbs loadLDAProbs(String modelDir, String modelName)
-			throws IOException {
-		return loadLDAProbs(new File(modelDir), modelName);
-	}
-
-	public static LDAProbs loadLDAProbs(File modelDir, String modelName)
-			throws IOException {
 		LDAProbsImpl ldaProbs = new LDAProbsImpl(getWordList(modelDir),
 				getDocList(modelDir));
 		loadWordTopicProbs(ldaProbs, new File(modelDir, modelName
 				+ WORD_TOPIC_SUFFIX));
 		loadTopicDocProbs(ldaProbs, new File(modelDir, modelName
+				+ TOPIC_DOC_SUFFIX));
+		return ldaProbs;
+	}
+
+	public static LDAProbs loadLDAProbs(String modelDir, String inferenceDir,
+			String modelName) throws IOException {
+		return loadLDAProbs(new File(modelDir), new File(inferenceDir),
+				modelName);
+	}
+
+	public static LDAProbs loadLDAProbs(File modelDir, File inferenceDir,
+			String modelName) throws IOException {
+		LDAProbsImpl ldaProbs = new LDAProbsImpl(getWordList(modelDir),
+				getDocList(inferenceDir));
+		loadWordTopicProbs(ldaProbs, new File(inferenceDir, modelName
+				+ WORD_TOPIC_SUFFIX));
+		loadTopicDocProbs(ldaProbs, new File(inferenceDir, modelName
 				+ TOPIC_DOC_SUFFIX));
 		return ldaProbs;
 	}
@@ -204,31 +213,35 @@ public class LDAProbsLoader {
 
 	public static void main(String[] args) throws IOException {
 		LDAConfig config = ConfigFactory.loadConfiguration(LDAConfig.class,
-				"./conf/lda-baseModel.conf");
-		LDAProbs probs = loadLDAProbs(new File(config.getModelDir()));
-		DocCluster cluster = new DocCluster(probs);
-		List<String>[] clusters = cluster.getDocClusters();
-		int count = 1;
-		int topic = 0;
-		for (List<String> c : clusters) {
-			if (c.size() > 10) {
-				topic = count - 1;
-			}
-			System.out.println("Cluster " + (count++) + " has " + c.size()
-					+ " docs");
-		}
+				"./conf/lda-inferenceModel.conf");
+		LDAProbs probs = loadLDAProbs(config.getModelDir(),
+				config.getModelDir() + "/test", "newdocs.dat.model");
 
-		System.err.println("Getting cluster ngram probs");
-		TreeMap<ArrayList<String>, Double> ngrams = cluster
-				.getClusterNgramProbs(topic, 2);
-		for (Entry<ArrayList<String>, Double> e : ngrams.entrySet()) {
-			System.out.println("Key: " + e.getKey());
-			System.out.println("Value: " + e.getValue());
-			break;
-		}
-		// System.out.println(probs.getNumTopics());
-		// System.out.println(probs.getWordTopicProb(probs.getWordList()[0],
-		// 0));
-		// System.out.println(probs.getTopicDocProb(0, probs.getDocList()[0]));
+		// LDAConfig config = ConfigFactory.loadConfiguration(LDAConfig.class,
+		// "./conf/lda-baseModel.conf");
+		// LDAProbs probs = loadLDAProbs(new File(config.getModelDir()));
+		// DocCluster cluster = new DocCluster(probs);
+		// List<String>[] clusters = cluster.getDocClusters();
+		// int count = 1;
+		// int topic = 0;
+		// for (List<String> c : clusters) {
+		// if (c.size() > 10) {
+		// topic = count - 1;
+		// }
+		// System.out.println("Cluster " + (count++) + " has " + c.size()
+		// + " docs");
+		// }
+		//
+		// System.err.println("Getting cluster ngram probs");
+		// TreeMap<ArrayList<String>, Double> ngrams = cluster
+		// .getClusterNgramProbs(topic, 2);
+		// for (Entry<ArrayList<String>, Double> e : ngrams.entrySet()) {
+		// System.out.println("Key: " + e.getKey());
+		// System.out.println("Value: " + e.getValue());
+		// break;
+		// }
+		System.out.println(probs.getNumTopics());
+		System.out.println(probs.getWordTopicProb(probs.getWordList()[0], 0));
+		System.out.println(probs.getTopicDocProb(0, probs.getDocList()[0]));
 	}
 }
