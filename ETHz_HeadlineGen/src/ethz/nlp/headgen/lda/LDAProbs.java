@@ -29,4 +29,6 @@ public interface LDAProbs {
 	 * @return The conditional probability P(topic | document)
 	 */
 	public double getTopicDocProb(int topic, String doc);
+
+	public int getMostLikelyTopic(String doc);
 }

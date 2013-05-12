@@ -173,6 +173,20 @@ public class LDAProbsLoader {
 		public int getNumTopics() {
 			return numTopics;
 		}
+
+		@Override
+		public int getMostLikelyTopic(String doc) {
+			double topProb = -1, prob;
+			int maxIndex = -1;
+			for (int i = 0; i < numTopics; i++) {
+				prob = getTopicDocProb(i, doc);
+				if (prob > topProb) {
+					maxIndex = i;
+					topProb = prob;
+				}
+			}
+			return maxIndex;
+		}
 	}
 
 	public static void main(String[] args) throws IOException {
