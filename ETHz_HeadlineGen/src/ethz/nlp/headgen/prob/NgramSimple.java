@@ -90,8 +90,16 @@ public class NgramSimple implements NGramProbs {
 
 	@Override
 	public double getProb(List<String> words) {
-		ArrayList<String> ngram = new ArrayList<String>(words);
-		return ngramFreq.get(ngram);
+		ArrayList<String> ngram = new ArrayList<String>();
+		for (String s : words) {
+			ngram.add(s.toLowerCase());
+		}
+
+		if (ngramFreq.containsKey(ngram)) {
+			return ngramFreq.get(ngram);
+		} else {
+			return -1;
+		}
 	}
 
 }

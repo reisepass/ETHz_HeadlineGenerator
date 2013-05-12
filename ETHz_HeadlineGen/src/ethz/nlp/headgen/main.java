@@ -152,7 +152,7 @@ public class main {
 			System.out.println(d.summary);
 		}
 
-		String rougeInFile = "ROUGE-IN.xml", rougeOutFile = "FirstBaselineOutput-2";
+		String rougeInFile = "ROUGE-IN.xml", rougeOutFile = "TestOutput";
 		m.writeSummaries();
 		RougeEvalBuilder reb = m.genRouge();
 		reb.write(rougeInFile);

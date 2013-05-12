@@ -69,7 +69,6 @@ public class RawToLDA {
 		for (String s : lemmas) {
 			sb.append(s.toLowerCase() + " ");
 		}
-		sb.deleteCharAt(sb.length() - 1);
 		return sb.toString();
 	}
 }

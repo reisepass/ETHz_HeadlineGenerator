@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.io.Writer;
 
 public class RougeScript {
 	private String rougePath;
@@ -23,7 +25,7 @@ public class RougeScript {
 		if (!rougePath.endsWith("/")) {
 			rougePath += "/";
 		}
-		
+
 		this.rougePath = rougePath;
 	}
 
@@ -31,7 +33,7 @@ public class RougeScript {
 		System.out.println(genCommand(inFile));
 		Process p = Runtime.getRuntime().exec(genCommand(inFile));
 
-		writeOutput(p, new File(outFile));
+		writeOutput(p, new FileWriter(new File(outFile)));
 		try {
 			if (p.waitFor() != 0) {
 				throw new IOException("Error running ROUGE script");
@@ -41,22 +43,36 @@ public class RougeScript {
 		}
 	}
 
-	private void writeOutput(Process p, File outFile) throws IOException {
-		FileWriter fw = null;
+	public RougeResults run(String inFile) throws IOException {
+		System.out.println(genCommand(inFile));
+		Process p = Runtime.getRuntime().exec(genCommand(inFile));
+
+		StringWriter sw = new StringWriter();
+		writeOutput(p, sw);
+		try {
+			if (p.waitFor() != 0) {
+				throw new IOException("Error running ROUGE script");
+			}
+		} catch (InterruptedException e) {
+			throw new IOException(e);
+		}
+		return RougeResults.parseResults(sw.toString());
+	}
+
+	private void writeOutput(Process p, Writer writer) throws IOException {
 		BufferedReader br = null;
 		String line = null;
 		try {
 			br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			fw = new FileWriter(outFile);
 			while ((line = br.readLine()) != null) {
-				fw.write(line + "\n");
+				writer.write(line + "\n");
 			}
 		} finally {
 			if (br != null) {
 				br.close();
 			}
-			if (fw != null) {
-				fw.close();
+			if (writer != null) {
+				writer.close();
 			}
 		}
 	}

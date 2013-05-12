@@ -86,7 +86,7 @@ public class DocNGramSimple implements DocNGramProbs {
 				.getProbs("My name is Herp Derp Niederhauser.  It is Herp Derp");
 		List<String> test = new ArrayList<String>(2);
 		test.add("herp");
-		test.add("derp");
+		test.add("Derp");
 		// TODO: There seems to be an issue if the words are not all in lower
 		// case
 		double val = probs.getProb(test);
