@@ -23,8 +23,17 @@ public class LDAProbsLoader {
 	private LDAProbsLoader() {
 	}
 
+	public static LDAProbs loadLDAProbs(String modelDir) throws IOException {
+		return loadLDAProbs(new File(modelDir));
+	}
+
 	public static LDAProbs loadLDAProbs(File modelDir) throws IOException {
 		return loadLDAProbs(modelDir, "model");
+	}
+
+	public static LDAProbs loadLDAProbs(String modelDir, String modelName)
+			throws IOException {
+		return loadLDAProbs(new File(modelDir), modelName);
 	}
 
 	public static LDAProbs loadLDAProbs(File modelDir, String modelName)
@@ -203,12 +212,12 @@ public class LDAProbsLoader {
 		int topic = 0;
 		for (List<String> c : clusters) {
 			if (c.size() > 10) {
-				topic = count-1;
+				topic = count - 1;
 			}
 			System.out.println("Cluster " + (count++) + " has " + c.size()
 					+ " docs");
 		}
-		
+
 		System.err.println("Getting cluster ngram probs");
 		TreeMap<ArrayList<String>, Double> ngrams = cluster
 				.getClusterNgramProbs(topic, 2);
