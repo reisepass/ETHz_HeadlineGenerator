@@ -49,8 +49,8 @@ public class DataFile {
 	}
 
 	public static void main(String[] args) throws IOException {
-		File rawDir = new File("data/duc2003_raw");
-		File out = new File("data/lda/LDA.dat");
+		File rawDir = new File("data/raw/d30001t");
+		File out = new File("data/lda/test/newdocs.dat");
 		DataFile df = new DataFile(rawDir);
 		df.createDataFile(out);
 	}

@@ -2,38 +2,27 @@ package ethz.nlp.headgen.lda;
 
 import java.io.IOException;
 
-import ethz.nlp.headgen.util.ConfigFactory;
 import jgibblda.Estimator;
+import jgibblda.Inferencer;
 import jgibblda.LDACmdOption;
-import jgibblda.Model;
+import ethz.nlp.headgen.util.ConfigFactory;
 
 public class TopicModel {
 
-	private Model model;
-
-	private TopicModel(Model model) {
-		this.model = model;
+	private TopicModel() {
 	}
 
 	public static void generateModel(LDAEstimatorConfig config) {
-		LDACmdOption cmdOptions = setCmdOptions(config);
-		cmdOptions.est = true;
 		Estimator estimator = new Estimator();
-		estimator.init(cmdOptions);
-		
+		estimator.init(setCmdOptions(config));
+
 		estimator.estimate();
 	}
 
-	public static TopicModel loadModel() {
-		return null;
-	}
-
-	public Model getModel() {
-		return model;
-	}
-
-	public Model inferNewModel(LDAEstimatorConfig config) {
-		return null;
+	public static void inferNewModel(LDAInferenceConfig config) {
+		Inferencer inf = new Inferencer();
+		inf.init(setCmdOptions(config));
+		inf.inference();
 	}
 
 	private static LDACmdOption setCmdOptions(LDAEstimatorConfig config) {
@@ -58,13 +47,33 @@ public class TopicModel {
 		}
 		cmdOption.dir = config.getModelDir();
 		cmdOption.dfile = config.getDataFile();
+		cmdOption.est = true;
+		return cmdOption;
+	}
+
+	private static LDACmdOption setCmdOptions(LDAInferenceConfig config) {
+		LDACmdOption cmdOption = new LDACmdOption();
+		if (config.getNumIters() != null) {
+			cmdOption.niters = config.getNumIters();
+		}
+		if (config.getTWords() != null) {
+			cmdOption.twords = config.getTWords();
+		}
+		cmdOption.dir = config.getModelDir();
+		cmdOption.dfile = config.getDataFile();
+		cmdOption.modelName = config.getModel();
+		cmdOption.est = true;
 		return cmdOption;
 	}
 
 	public static void main(String[] args) throws IOException {
-		LDAEstimatorConfig config = ConfigFactory.loadConfiguration(
-				LDAEstimatorConfig.class, "./conf/lda.conf");
+		// LDAEstimatorConfig config = ConfigFactory.loadConfiguration(
+		// LDAEstimatorConfig.class, "./conf/lda.conf");
+		//
+		// TopicModel.generateModel(config);
+		LDAInferenceConfig config = ConfigFactory.loadConfiguration(
+				LDAInferenceConfig.class, "./conf/lda-inferenceModel.conf");
 
-		TopicModel.generateModel(config);
+		TopicModel.inferNewModel(config);
 	}
 }
