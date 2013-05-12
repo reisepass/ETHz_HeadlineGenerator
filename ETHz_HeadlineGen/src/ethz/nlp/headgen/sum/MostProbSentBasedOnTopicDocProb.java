@@ -44,34 +44,13 @@ public class MostProbSentBasedOnTopicDocProb extends ArticleTopicNGramSum implem
 	}
 
 	protected ArrayList<String> wildWithInpAtBack(String inp){
-		ArrayList<String> out = new ArrayList<String>(ngramLength);
-		for(int i=0;i<ngramLength-1;i++){
-			out.add(i, FirstSentSum.WILDCARD_STRING);
-		}
-		if(inp.indexOf(" ")!=-1){
-			for(String sepI : inp.split(" ")){
-				out.add(sepI);
-			}
-		}
-		else
-			out.add(ngramLength-1, inp);
-		return out;
+		return super.wildWithInpAtBack(inp, ngramLength);
+		 
 	}
 	
 	protected ArrayList<String> wildWithInpAtFront(String inp){
-		ArrayList<String> out = new ArrayList<String>(ngramLength);
+		return super.wildWithInpAtFront(inp, ngramLength);
 		
-		if(inp.indexOf(" ")!=-1){
-			for(String sepI : inp.split(" ")){
-				out.add(sepI);
-			}
-		}
-		else
-			out.add(0, inp);
-		for(int i=1;i<ngramLength;i++){
-			out.add(i, FirstSentSum.WILDCARD_STRING);
-		}
-		return out;
 	}
 	
 	public String summary() {
