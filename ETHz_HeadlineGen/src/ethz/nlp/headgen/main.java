@@ -30,7 +30,6 @@ import ethz.nlp.headgen.sum.FirstBaseline;
 import ethz.nlp.headgen.sum.FirstSentSum;
 import ethz.nlp.headgen.sum.MostProbSentBasedOnTopicDocProb;
 import ethz.nlp.headgen.sum.MostProbSentSimpleGreedy;
-import ethz.nlp.headgen.sum.NeFreqBasedSum;
 import ethz.nlp.headgen.sum.SecondBaseline;
 import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.util.ConfigFactory;
@@ -227,11 +226,11 @@ public class main {
 		}
 		summarizers.add(s);
 
-		s = new Summerizer[docs.size()];
-		for (int i = 0; i < s.length; i++) {
-			s[i] = new NeFreqBasedSum(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
-		}
-		summarizers.add(s);
+//		s = new Summerizer[docs.size()];
+//		for (int i = 0; i < s.length; i++) {
+//			s[i] = new NeFreqBasedSum(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
+//		}
+//		summarizers.add(s);
 
 		s = new Summerizer[docs.size()];
 		for (int i = 0; i < s.length; i++) {

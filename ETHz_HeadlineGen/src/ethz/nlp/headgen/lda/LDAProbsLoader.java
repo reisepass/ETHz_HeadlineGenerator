@@ -40,10 +40,10 @@ public class LDAProbsLoader {
 
 		LDAProbsImpl ldaProbs = new LDAProbsImpl(getWordList(modelDir),
 				getDocList(infDir));
-		loadWordTopicProbs(ldaProbs, new File(infDir, infConf.getModel()
-				+ WORD_TOPIC_SUFFIX));
-		loadTopicDocProbs(ldaProbs, new File(infDir, infConf.getModel()
-				+ TOPIC_DOC_SUFFIX));
+		loadWordTopicProbs(ldaProbs, new File(infDir, infConf.getDataFile()
+				+ ".model-final" + WORD_TOPIC_SUFFIX));
+		loadTopicDocProbs(ldaProbs, new File(infDir, infConf.getDataFile()
+				+ ".model-final" +  TOPIC_DOC_SUFFIX));
 		return ldaProbs;
 	}
 
