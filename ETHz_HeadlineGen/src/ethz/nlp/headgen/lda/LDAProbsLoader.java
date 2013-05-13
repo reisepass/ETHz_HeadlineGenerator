@@ -240,8 +240,8 @@ public class LDAProbsLoader {
 		// System.out.println("Value: " + e.getValue());
 		// break;
 		// }
-		System.out.println(probs.getNumTopics());
-		System.out.println(probs.getWordTopicProb(probs.getWordList()[0], 0));
-		System.out.println(probs.getTopicDocProb(0, probs.getDocList()[0]));
+		for (String doc : probs.getDocList()) {
+			System.out.println(doc + ": " + probs.getMostLikelyTopic(doc));
+		}
 	}
 }
