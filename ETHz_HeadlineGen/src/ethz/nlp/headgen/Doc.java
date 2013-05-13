@@ -15,7 +15,16 @@ import ethz.nlp.headgen.data.WordCountTree;
 import ethz.nlp.headgen.io.ParsedDocReader;
 import ethz.nlp.headgen.sum.Summerizer;
 
-public class Doc implements Summerizer {
+public class Doc  {
+	public Doc() {
+		
+	}
+	public Doc( String cont) {
+		super();
+
+		this.cont = cont;
+
+	}
 	public Doc(String docno, String docType, String textType, String cont,
 			File f) {
 		super();
@@ -43,10 +52,7 @@ public class Doc implements Summerizer {
 				+ textType + "]";
 	}
 
-	@Override
-	public String summary() {
-		return null;
-	}
+
 	public void setAno(Annotation in){
 		this.annotation = in;
 	}
