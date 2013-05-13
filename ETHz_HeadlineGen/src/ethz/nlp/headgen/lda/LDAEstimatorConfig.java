@@ -1,6 +1,9 @@
 package ethz.nlp.headgen.lda;
 
+
 public interface LDAEstimatorConfig extends LDAConfig {
+	public static final String DEFAULT = "conf/lda-baseModel.conf";
+
 	/**
 	 * @return The value of alpha, hyper-parameter of LDA. The default value of
 	 *         alpha is 50 / K (K is the the number of topics). See

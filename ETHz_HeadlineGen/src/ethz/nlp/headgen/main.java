@@ -15,12 +15,23 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import ethz.nlp.headgen.io.IOConfig;
 import ethz.nlp.headgen.io.ParsedDocReader;
 import ethz.nlp.headgen.io.ParsedDocWriter;
+import ethz.nlp.headgen.lda.DocCluster;
+import ethz.nlp.headgen.lda.LDAEstimatorConfig;
+import ethz.nlp.headgen.lda.LDAInferenceConfig;
+import ethz.nlp.headgen.lda.LDAProbs;
+import ethz.nlp.headgen.lda.LDAProbsLoader;
+import ethz.nlp.headgen.prob.NGramProbs;
+import ethz.nlp.headgen.prob.NoFilterAddTestCorpus;
 import ethz.nlp.headgen.rouge.RougeEvalBuilder;
 import ethz.nlp.headgen.rouge.RougeResults;
 import ethz.nlp.headgen.rouge.RougeScript;
 import ethz.nlp.headgen.sum.ArticleTopicNGramSum;
+import ethz.nlp.headgen.sum.FirstBaseline;
+import ethz.nlp.headgen.sum.FirstSentSum;
 import ethz.nlp.headgen.sum.MostProbSentBasedOnTopicDocProb;
+import ethz.nlp.headgen.sum.MostProbSentSimpleGreedy;
 import ethz.nlp.headgen.sum.NeFreqBasedSum;
+import ethz.nlp.headgen.sum.SecondBaseline;
 import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.util.ConfigFactory;
 import ethz.nlp.headgen.xml.XMLDoc;
@@ -30,7 +41,7 @@ public class main {
 	public static final int DEFAULT_MAX_SUMMARY_LENGTH = 75;
 
 	private Config conf;
-	private static IOConfig ioConf;
+	private IOConfig ioConf;
 
 	private List<Doc> documents = new ArrayList<Doc>();
 
@@ -102,32 +113,143 @@ public class main {
 	 * @throws IOException
 	 */
 	public static void main(String[] args) throws IOException {
+		// Load config files
+		System.err.println("Loading config files");
 		Config conf = ConfigFactory.loadConfiguration(Config.class,
 				Config.DEFAULT);
 		IOConfig ioConf = ConfigFactory.loadConfiguration(IOConfig.class,
 				IOConfig.DEFAULT);
+		LDAEstimatorConfig estConf = ConfigFactory.loadConfiguration(
+				LDAEstimatorConfig.class, LDAEstimatorConfig.DEFAULT);
+		LDAInferenceConfig infConf = ConfigFactory.loadConfiguration(
+				LDAInferenceConfig.class, LDAInferenceConfig.DEFAULT);
 
 		main m = new main(conf, ioConf);
 
+		// Load files that we want to summarize
+		System.err.println("Loading documents");
 		m.loadFiles();
 
-		for (Doc d : m.documents) {
-			m.generateSummary(d, new MostProbSentBasedOnTopicDocProb(d,
-					DEFAULT_MAX_SUMMARY_LENGTH));
+		// Load topic models
+		System.err.println("Loading topic models");
+		LDAProbs baseModel = LDAProbsLoader.loadLDAProbs(estConf);
+		LDAProbs inferredModel = LDAProbsLoader.loadLDAProbs(estConf, infConf);
 
+		// Assign docs to clusters
+		System.err.println("Assigning docs to clusters");
+		DocCluster trainCluster = new DocCluster(baseModel);
+		List<Integer> clusterAssign = m.assignDocClusters(inferredModel);
+
+		// Get a list of ngram probabilities for each document
+		System.err.println("Getting doc ngram probabilities");
+		List<NGramProbs[]> probs = m.genDocNGramProbs(clusterAssign,
+				trainCluster);
+
+		System.err.println("Generating list of summarizers");
+		List<Summerizer[]> summarizers = m.generateSummarizerList(m.documents,
+				probs);
+
+		for (Summerizer[] s : summarizers) {
+			System.err.println("Generating summaries for " + s.getClass());
+			// Generate summaries
+			for (int i = 0; i < s.length; i++) {
+				m.generateSummary(m.documents.get(i), s[i]);
+				// System.out.println(m.documents.get(i).summary);
+			}
+
+			// Write the summaries to disk
+			m.writeSummaries();
+
+			// Generate the ROUGE evaluation file
+			String rougeInFile = "ROUGE-IN.xml";
+			RougeEvalBuilder reb = m.genRouge();
+			reb.write(rougeInFile);
+
+			// Run the ROUGE script on the generated summaries and print the
+			// results
+			RougeScript rs = new RougeScript(conf.getRougePath(), 95, 500, 2,
+					1.2);
+			RougeResults results = rs.run(rougeInFile);
+			System.out.println(s[0].getClass());
+			System.out.println(results.getNgramAvgF(1));
 		}
-		for (Doc d : m.documents) {
-			System.out.println(d.summary);
+	}
+
+	private List<Integer> assignDocClusters(LDAProbs probs) throws IOException {
+		List<Integer> clusterAssign = new ArrayList<Integer>();
+		for (Doc d : documents) {
+			clusterAssign.add(probs.getMostLikelyTopic(d.f.getPath()));
+		}
+		return clusterAssign;
+	}
+
+	// NGramProbs: NoFilterAddTestCorpus, NgramLightFilter,
+	// CorpPlusQueryDocNgrams
+	private List<NGramProbs[]> genDocNGramProbs(List<Integer> clusterAssign,
+			DocCluster trainCluster) throws IOException {
+		List<NGramProbs[]> probsList = new ArrayList<NGramProbs[]>();
+
+		NGramProbs[] probs = new NGramProbs[clusterAssign.size()];
+		for (int i = 0; i < clusterAssign.size(); i++) {
+			probs[i] = new NoFilterAddTestCorpus(
+					trainCluster.getClusterNgramProbs(clusterAssign.get(i)));
+		}
+		probsList.add(probs);
+		return probsList;
+	}
+
+	private List<Summerizer[]> generateSummarizerList(List<Doc> docs,
+			List<NGramProbs[]> probs) {
+		List<Summerizer[]> summarizers = new ArrayList<Summerizer[]>();
+
+		Summerizer[] s = new Summerizer[docs.size()];
+		for (int i = 0; i < s.length; i++) {
+			s[i] = new FirstSentSum(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
+		}
+		summarizers.add(s);
+
+		s = new Summerizer[docs.size()];
+		for (int i = 0; i < s.length; i++) {
+			s[i] = new FirstBaseline(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
+		}
+		summarizers.add(s);
+
+		s = new Summerizer[docs.size()];
+		for (int i = 0; i < s.length; i++) {
+			s[i] = new SecondBaseline(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
+		}
+		summarizers.add(s);
+
+		s = new Summerizer[docs.size()];
+		for (int i = 0; i < s.length; i++) {
+			s[i] = new ArticleTopicNGramSum(docs.get(i),
+					DEFAULT_MAX_SUMMARY_LENGTH);
+		}
+		summarizers.add(s);
+
+		s = new Summerizer[docs.size()];
+		for (int i = 0; i < s.length; i++) {
+			s[i] = new NeFreqBasedSum(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
+		}
+		summarizers.add(s);
+
+		s = new Summerizer[docs.size()];
+		for (int i = 0; i < s.length; i++) {
+			s[i] = new MostProbSentBasedOnTopicDocProb(docs.get(i),
+					DEFAULT_MAX_SUMMARY_LENGTH);
+		}
+		summarizers.add(s);
+
+		for (NGramProbs[] prob : probs) {
+			s = new Summerizer[docs.size()];
+			for (int i = 0; i < s.length; i++) {
+				s[i] = new MostProbSentSimpleGreedy(docs.get(i),
+						DEFAULT_MAX_SUMMARY_LENGTH, prob[i]);
+			}
+			summarizers.add(s);
 		}
 
-		String rougeInFile = "ROUGE-IN.xml";
-		m.writeSummaries();
-		RougeEvalBuilder reb = m.genRouge();
-		reb.write(rougeInFile);
-
-		RougeScript rs = new RougeScript(conf.getRougePath(), 95, 500, 2, 1.2);
-		RougeResults results = rs.run(rougeInFile);
-		System.out.println(results.toString());
+		return summarizers;
 	}
 
 	private RougeEvalBuilder genRouge() throws IOException {

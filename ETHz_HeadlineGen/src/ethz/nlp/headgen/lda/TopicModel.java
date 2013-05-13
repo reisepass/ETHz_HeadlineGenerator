@@ -19,9 +19,9 @@ public class TopicModel {
 		estimator.estimate();
 	}
 
-	public static void inferNewModel(LDAInferenceConfig config) {
+	public static void inferNewModel(LDAInferenceConfig infConf, LDAEstimatorConfig estConf) {
 		Inferencer inf = new Inferencer();
-		inf.init(setCmdOptions(config));
+		inf.init(setCmdOptions(estConf, infConf));
 		inf.inference();
 	}
 
@@ -51,29 +51,27 @@ public class TopicModel {
 		return cmdOption;
 	}
 
-	private static LDACmdOption setCmdOptions(LDAInferenceConfig config) {
+	private static LDACmdOption setCmdOptions(LDAEstimatorConfig estConf, LDAInferenceConfig infConf) {
 		LDACmdOption cmdOption = new LDACmdOption();
-		if (config.getNumIters() != null) {
-			cmdOption.niters = config.getNumIters();
+		if (infConf.getNumIters() != null) {
+			cmdOption.niters = infConf.getNumIters();
 		}
-		if (config.getTWords() != null) {
-			cmdOption.twords = config.getTWords();
+		if (infConf.getTWords() != null) {
+			cmdOption.twords = infConf.getTWords();
 		}
-		cmdOption.dir = config.getModelDir();
-		cmdOption.dfile = config.getDataFile();
-		cmdOption.modelName = config.getModel();
+		cmdOption.dir = estConf.getModelDir();
+		cmdOption.dfile = infConf.getDataFile();
+		cmdOption.modelName = infConf.getModel();
 		cmdOption.est = true;
 		return cmdOption;
 	}
 
 	public static void main(String[] args) throws IOException {
-		// LDAEstimatorConfig config = ConfigFactory.loadConfiguration(
-		// LDAEstimatorConfig.class, "./conf/lda.conf");
-		//
-		// TopicModel.generateModel(config);
-		LDAInferenceConfig config = ConfigFactory.loadConfiguration(
-				LDAInferenceConfig.class, "./conf/lda-inferenceModel.conf");
+		LDAEstimatorConfig estConf = ConfigFactory.loadConfiguration(
+				LDAEstimatorConfig.class, LDAEstimatorConfig.DEFAULT);
+		LDAInferenceConfig infConf = ConfigFactory.loadConfiguration(
+				LDAInferenceConfig.class, LDAInferenceConfig.DEFAULT);
 
-		TopicModel.inferNewModel(config);
+		TopicModel.inferNewModel(infConf, estConf);
 	}
 }

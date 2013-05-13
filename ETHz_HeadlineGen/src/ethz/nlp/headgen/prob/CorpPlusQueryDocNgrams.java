@@ -6,7 +6,11 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import ethz.nlp.headgen.Doc;
-
+/**
+ * Is like NgramLightFilter but also appends the ngrams of the doc itself to the Treemap. Note that these are weighed higher than the rest of the corpus by default 
+ * @author Ruben
+ *
+ */
 public class CorpPlusQueryDocNgrams extends NgramLightFilter implements
 		NGramProbs {
 	protected double qDocNgramWeights;

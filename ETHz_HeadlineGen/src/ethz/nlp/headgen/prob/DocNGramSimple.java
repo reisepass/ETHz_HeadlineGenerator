@@ -11,7 +11,13 @@ import ethz.nlp.headgen.data.WordCount;
 import ethz.nlp.headgen.data.WordCountTree;
 
 public class DocNGramSimple implements DocNGramProbs {
+	public static final int DEFAULT_NGRAMS_LENGTH = 2;
+
 	private int n;
+
+	public DocNGramSimple() {
+		this(DEFAULT_NGRAMS_LENGTH);
+	}
 
 	public DocNGramSimple(int n) {
 		this.n = n;

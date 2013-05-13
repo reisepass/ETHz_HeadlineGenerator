@@ -4,10 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 
 import com.googlecode.concurrenttrees.radix.ConcurrentRadixTree;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
@@ -15,43 +11,38 @@ import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFa
 import ethz.nlp.headgen.util.ConfigFactory;
 
 public class LDAProbsLoader {
-	public static final String WORD_TOPIC_SUFFIX = "-final.phi";
-	public static final String TOPIC_DOC_SUFFIX = "-final.theta";
+	public static final String WORD_TOPIC_SUFFIX = ".phi";
+	public static final String TOPIC_DOC_SUFFIX = ".theta";
 	public static final String WORDMAP = "wordmap.txt";
 	public static final String DOCMAP = "docmap.txt";
 
 	private LDAProbsLoader() {
 	}
 
-	public static LDAProbs loadLDAProbs(String modelDir) throws IOException {
-		return loadLDAProbs(new File(modelDir));
-	}
-
-	public static LDAProbs loadLDAProbs(File modelDir) throws IOException {
+	public static LDAProbs loadLDAProbs(LDAEstimatorConfig estConf)
+			throws IOException {
 		String modelName = "model";
+		File modelDir = new File(estConf.getModelDir());
 
 		LDAProbsImpl ldaProbs = new LDAProbsImpl(getWordList(modelDir),
 				getDocList(modelDir));
-		loadWordTopicProbs(ldaProbs, new File(modelDir, modelName
+		loadWordTopicProbs(ldaProbs, new File(modelDir, modelName + "-final"
 				+ WORD_TOPIC_SUFFIX));
-		loadTopicDocProbs(ldaProbs, new File(modelDir, modelName
+		loadTopicDocProbs(ldaProbs, new File(modelDir, modelName + "-final"
 				+ TOPIC_DOC_SUFFIX));
 		return ldaProbs;
 	}
 
-	public static LDAProbs loadLDAProbs(String modelDir, String inferenceDir,
-			String modelName) throws IOException {
-		return loadLDAProbs(new File(modelDir), new File(inferenceDir),
-				modelName);
-	}
+	public static LDAProbs loadLDAProbs(LDAEstimatorConfig estConf,
+			LDAInferenceConfig infConf) throws IOException {
+		File modelDir = new File(estConf.getModelDir()), infDir = new File(
+				infConf.getModelDir());
 
-	public static LDAProbs loadLDAProbs(File modelDir, File inferenceDir,
-			String modelName) throws IOException {
 		LDAProbsImpl ldaProbs = new LDAProbsImpl(getWordList(modelDir),
-				getDocList(inferenceDir));
-		loadWordTopicProbs(ldaProbs, new File(inferenceDir, modelName
+				getDocList(infDir));
+		loadWordTopicProbs(ldaProbs, new File(infDir, infConf.getModel()
 				+ WORD_TOPIC_SUFFIX));
-		loadTopicDocProbs(ldaProbs, new File(inferenceDir, modelName
+		loadTopicDocProbs(ldaProbs, new File(infDir, infConf.getModel()
 				+ TOPIC_DOC_SUFFIX));
 		return ldaProbs;
 	}
@@ -212,10 +203,11 @@ public class LDAProbsLoader {
 	}
 
 	public static void main(String[] args) throws IOException {
-		LDAConfig config = ConfigFactory.loadConfiguration(LDAConfig.class,
-				"./conf/lda-inferenceModel.conf");
-		LDAProbs probs = loadLDAProbs(config.getModelDir(),
-				config.getModelDir() + "/test", "newdocs.dat.model");
+		LDAEstimatorConfig estConf = ConfigFactory.loadConfiguration(
+				LDAEstimatorConfig.class, LDAEstimatorConfig.DEFAULT);
+		LDAInferenceConfig infConf = ConfigFactory.loadConfiguration(
+				LDAInferenceConfig.class, LDAInferenceConfig.DEFAULT);
+		LDAProbs probs = loadLDAProbs(estConf, infConf);
 
 		// LDAConfig config = ConfigFactory.loadConfiguration(LDAConfig.class,
 		// "./conf/lda-baseModel.conf");
@@ -240,6 +232,7 @@ public class LDAProbsLoader {
 		// System.out.println("Value: " + e.getValue());
 		// break;
 		// }
+
 		for (String doc : probs.getDocList()) {
 			System.out.println(doc + ": " + probs.getMostLikelyTopic(doc));
 		}

@@ -10,12 +10,15 @@ import ethz.nlp.headgen.prob.DocNGramSimple;
 import ethz.nlp.headgen.prob.RawToNGram;
 import ethz.nlp.headgen.util.FileIO;
 
+@SuppressWarnings("unchecked")
 public class DocCluster {
 	private LDAProbs probs;
 	private List<String>[] docClusters = null;
+	private TreeMap<ArrayList<String>, Double>[] clusterNgrams;
 
 	public DocCluster(LDAProbs probs) {
 		this.probs = probs;
+		clusterNgrams = new TreeMap[probs.getNumTopics()];
 	}
 
 	public List<String>[] getDocClusters() {
@@ -34,7 +37,6 @@ public class DocCluster {
 		return getDocClusters()[cluster];
 	}
 
-	@SuppressWarnings("unchecked")
 	private void genClusters() {
 		int numTopics = probs.getNumTopics();
 
@@ -47,16 +49,19 @@ public class DocCluster {
 		}
 	}
 
-	public TreeMap<ArrayList<String>, Double> getClusterNgramProbs(int cluster,
-			int n) throws IOException {
-		List<String> clusterDocs = getDocsInCluster(cluster);
-		StringBuilder docTexts = new StringBuilder();
-		DocNGramSimple docNgrams = new DocNGramSimple(n);
-		String text;
-		for (String d : clusterDocs) {
-			text = FileIO.readTextFile(new File(d));
-			docTexts.append(RawToNGram.convert(text));
+	public TreeMap<ArrayList<String>, Double> getClusterNgramProbs(int cluster)
+			throws IOException {
+		if (clusterNgrams[cluster] == null) {
+			List<String> clusterDocs = getDocsInCluster(cluster);
+			StringBuilder docTexts = new StringBuilder();
+			DocNGramSimple docNgrams = new DocNGramSimple();
+			String text;
+			for (String d : clusterDocs) {
+				text = FileIO.readTextFile(new File(d));
+				docTexts.append(RawToNGram.convert(text));
+			}
+			clusterNgrams[cluster] = docNgrams.getProbs(docTexts.toString());
 		}
-		return docNgrams.getProbs(docTexts.toString());
+		return clusterNgrams[cluster];
 	}
 }
