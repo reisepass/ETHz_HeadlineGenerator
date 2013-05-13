@@ -19,6 +19,12 @@ public class Doc  {
 	public Doc() {
 		
 	}
+	public Doc( String cont) {
+		super();
+
+		this.cont = cont;
+
+	}
 	public Doc(String docno, String docType, String textType, String cont,
 			File f) {
 		super();
