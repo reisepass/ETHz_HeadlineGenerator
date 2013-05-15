@@ -63,5 +63,5 @@ public class CorpusCounts {
 
 	public WordCountTree getDocAppearanceCounts() {
 		return docAppearanceCounts;
-	}
+	} 
 }
