@@ -19,7 +19,8 @@ public class TopicModel {
 		estimator.estimate();
 	}
 
-	public static void inferNewModel(LDAInferenceConfig infConf, LDAEstimatorConfig estConf) {
+	public static void inferNewModel(LDAInferenceConfig infConf,
+			LDAEstimatorConfig estConf) {
 		Inferencer inf = new Inferencer();
 		inf.init(setCmdOptions(estConf, infConf));
 		inf.inference();
@@ -51,7 +52,8 @@ public class TopicModel {
 		return cmdOption;
 	}
 
-	private static LDACmdOption setCmdOptions(LDAEstimatorConfig estConf, LDAInferenceConfig infConf) {
+	private static LDACmdOption setCmdOptions(LDAEstimatorConfig estConf,
+			LDAInferenceConfig infConf) {
 		LDACmdOption cmdOption = new LDACmdOption();
 		if (infConf.getNumIters() != null) {
 			cmdOption.niters = infConf.getNumIters();
@@ -69,9 +71,9 @@ public class TopicModel {
 	public static void main(String[] args) throws IOException {
 		LDAEstimatorConfig estConf = ConfigFactory.loadConfiguration(
 				LDAEstimatorConfig.class, LDAEstimatorConfig.DEFAULT);
-		LDAInferenceConfig infConf = ConfigFactory.loadConfiguration(
-				LDAInferenceConfig.class, LDAInferenceConfig.DEFAULT);
+		// LDAInferenceConfig infConf = ConfigFactory.loadConfiguration(
+		// LDAInferenceConfig.class, LDAInferenceConfig.DEFAULT);
 
-		TopicModel.inferNewModel(infConf, estConf);
+		TopicModel.generateModel(estConf);
 	}
 }

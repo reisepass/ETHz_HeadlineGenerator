@@ -213,11 +213,11 @@ public class main {
 		}
 		summarizers.add(s);
 
-		s = new Summerizer[docs.size()];
-		for (int i = 0; i < s.length; i++) {
-			s[i] = new SecondBaseline(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
-		}
-		summarizers.add(s);
+//		s = new Summerizer[docs.size()];
+//		for (int i = 0; i < s.length; i++) {
+//			s[i] = new SecondBaseline(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
+//		}
+//		summarizers.add(s);
 
 		s = new Summerizer[docs.size()];
 		for (int i = 0; i < s.length; i++) {

@@ -8,6 +8,7 @@ import ethz.nlp.headgen.util.FileIO;
 
 public class DataFile {
 
+	private int count = 0, numFiles;
 	private File dir;
 
 	public DataFile(File dir) {
@@ -19,7 +20,7 @@ public class DataFile {
 	}
 
 	public void createDataFile(File outFile) throws IOException {
-		int numFiles = getNumFiles(dir);
+		numFiles = getNumFiles(dir);
 
 		FileWriter docMapWriter = null;
 		FileWriter dataFileWriter = null;
@@ -48,6 +49,7 @@ public class DataFile {
 				writeFiles(f, docMapWriter, dataFileWriter);
 			} else {
 				try {
+					System.out.println("Writing file " + ++count + "/" + numFiles);
 					docMapWriter.write(f.getPath() + "\n");
 					dataFileWriter.write(RawToLDA.convert(FileIO
 							.readTextFile(f)) + "\n");
@@ -71,8 +73,8 @@ public class DataFile {
 	}
 
 	public static void main(String[] args) throws IOException {
-		File rawDir = new File("data/raw");
-		File out = new File("data/lda/test/newdocs.dat");
+		File rawDir = new File("data/news200");
+		File out = new File("data/lda/LDA.dat");
 		DataFile df = new DataFile(rawDir);
 		df.createDataFile(out);
 	}
