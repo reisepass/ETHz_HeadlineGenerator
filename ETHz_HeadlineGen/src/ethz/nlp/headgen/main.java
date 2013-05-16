@@ -32,15 +32,13 @@ import ethz.nlp.headgen.sum.FeatureBasedSummary;
 import ethz.nlp.headgen.sum.FirstBaseline;
 import ethz.nlp.headgen.sum.FirstSentSum;
 import ethz.nlp.headgen.sum.MostProbSentBasedOnTopicDocProb;
-import ethz.nlp.headgen.sum.MostProbSentSimpleGreedy;
-import ethz.nlp.headgen.sum.SecondBaseline;
 import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.sum.Tf_IdfFeature;
 import ethz.nlp.headgen.util.ConfigFactory;
 import ethz.nlp.headgen.xml.XMLDoc;
 
 public class main {
-
+	public static final annotateThisDoc initATD = new annotateThisDoc();
 	public static final int DEFAULT_MAX_SUMMARY_LENGTH = 75;
 
 	private Config conf;
