@@ -49,18 +49,17 @@ public class XMLNews200 {
 							
 			NodeList descr  = docIN.getElementsByTagName("description");
 					
-//			ArrayList<Doc> outDoc = new ArrayList<Doc>();
+			ArrayList<Doc> outDoc = new ArrayList<Doc>();
 			Random ran = new Random();
-			
-			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 			
 			for (int i=0; i < title.getLength()&&i < descr.getLength(); i++) {
 			    Node curTitle = title.item(i);
 			    Node curDesk  = descr.item(i);
-//			    outDoc.add(new Doc(curTitle.getTextContent()+" "+curDesk.getTextContent()));
+			    outDoc.add(new Doc(curTitle.getTextContent()+" "+curDesk.getTextContent()));
 			    
 			    
+			    DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+				DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 		 
 				// root elements
 				Document writeDoc = docBuilder.newDocument();
@@ -111,7 +110,7 @@ public class XMLNews200 {
 			}
 			
 
-			return null;
+			return outDoc;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -154,5 +153,40 @@ public class XMLNews200 {
 			return null;
 		}
 	}
-	
+	public static ArrayList<Doc> readXML(File f, int limit) {
+		try {
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document docIN = dBuilder.parse(f);
+			
+			
+			// optional, but recommended
+			// read this -
+			// http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
+			docIN.getDocumentElement().normalize();
+
+			NodeList title =  docIN.getElementsByTagName("title");
+							
+			NodeList descr  = docIN.getElementsByTagName("description");
+					
+			ArrayList<Doc> outDoc = new ArrayList<Doc>();
+			Random ran = new Random();
+			
+			for (int i=0; i < title.getLength()&&i < descr.getLength() &&i<limit; i++) {
+			    Node curTitle = title.item(i);
+			    Node curDesk  = descr.item(i);
+			    outDoc.add(new Doc(curTitle.getTextContent()+" "+curDesk.getTextContent()));
+			    
+			    
+				
+				
+			}
+			
+
+			return outDoc;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }

@@ -9,6 +9,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import ethz.nlp.headgen.data.WordCountTree;
@@ -61,10 +64,22 @@ public class Doc  {
 	
 	public Annotation getAno(){
 		if( this.annotation==null){
-			return null;
+			this.annotation=main.initATD.anoThis(this.cont);
+			
 		}
-		else 
+		
 			return this.annotation;
+	}
+	public WordCountTree getWordCount(){
+		if(wordCounts==null){
+			this.wordCounts = new WordCountTree();
+			List<CoreLabel> tokens = this.getAno().get(TokensAnnotation.class);
+			for (CoreLabel token : tokens) {
+				
+				this.wordCounts.put(token.get(TextAnnotation.class));
+			}
+		}
+		return wordCounts;
 	}
 	
 	public String getParentDirName() {

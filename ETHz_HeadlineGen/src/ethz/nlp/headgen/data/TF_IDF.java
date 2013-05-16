@@ -10,11 +10,19 @@ public class TF_IDF {
 	}
 
 	public static double calc(String word, Doc d, CorpusCounts c) {
-		double docCount = d.wordCounts.getValueForExactKey(word).getCount();
-		double maxCount = d.wordCounts.getMax();
+		double docCount;
+		 if (d.getWordCount().getValueForExactKey(word)==null)
+			 docCount=0;
+		 else
+			 docCount = d.getWordCount().getValueForExactKey(word).getCount();
+		double maxCount = d.getWordCount().getMax();
 		double numDocs = c.getNumDocs();
-		double docAppearanceCount = c.getDocAppearanceCounts()
-				.getValueForExactKey(word).getCount();
+		double docAppearanceCount;
+		
+		if( 	c.getDocAppearanceCounts().getValueForExactKey(word)==null)
+			docAppearanceCount=0;
+		else
+			docAppearanceCount = c.getDocAppearanceCounts().getValueForExactKey(word).getCount();
 		return (docCount / maxCount)
 				* (Math.log(numDocs / (1 + docAppearanceCount)));
 	}

@@ -114,5 +114,5 @@ public class CorpusCounts implements Serializable {
 
 	public WordCountTree getDocAppearanceCounts() {
 		return docAppearanceCounts;
-	}
+	} 
 }
