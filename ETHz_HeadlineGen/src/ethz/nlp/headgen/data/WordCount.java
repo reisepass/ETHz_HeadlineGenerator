@@ -1,6 +1,8 @@
 package ethz.nlp.headgen.data;
 
-public class WordCount {
+import java.io.Serializable;
+
+public class WordCount implements Serializable {
 	private int count;
 
 	public WordCount() {

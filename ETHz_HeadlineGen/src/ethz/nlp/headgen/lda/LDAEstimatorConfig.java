@@ -1,6 +1,5 @@
 package ethz.nlp.headgen.lda;
 
-
 public interface LDAEstimatorConfig extends LDAConfig {
 	public static final String DEFAULT = "conf/lda-baseModel.conf";
 
@@ -31,4 +30,6 @@ public interface LDAEstimatorConfig extends LDAConfig {
 	 *         200.
 	 */
 	public Integer getSavestep();
+
+	public String getModel();
 }

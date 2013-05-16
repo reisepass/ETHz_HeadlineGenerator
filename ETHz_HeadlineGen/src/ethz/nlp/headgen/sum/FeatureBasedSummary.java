@@ -1,6 +1,5 @@
 package ethz.nlp.headgen.sum;
 
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -14,16 +13,21 @@ public class FeatureBasedSummary implements Summerizer {
 	public static final int NUM_TOP_WORDS = 20;
 
 	private Doc doc;
-	private List<Feature> features;
+	private Feature[] features;
 
-	public FeatureBasedSummary(int length, List<Feature> features) {
+	public FeatureBasedSummary(Doc doc, int length, Feature... features) {
+		this.doc = doc;
 		this.features = features;
 	}
 
 	@Override
 	public String summary() {
 		SortedSet<WordEntry> topWords = getTopWords();
-		return null;
+		StringBuilder sb = new StringBuilder();
+		for (WordEntry w : topWords) {
+			sb.append(w.token.get(TextAnnotation.class));
+		}
+		return sb.toString();
 	}
 
 	private SortedSet<WordEntry> getTopWords() {

@@ -21,14 +21,13 @@ public class LDAProbsLoader {
 
 	public static LDAProbs loadLDAProbs(LDAEstimatorConfig estConf)
 			throws IOException {
-		String modelName = "model";
 		File modelDir = new File(estConf.getModelDir());
 
 		LDAProbsImpl ldaProbs = new LDAProbsImpl(getWordList(modelDir),
 				getDocList(modelDir));
-		loadWordTopicProbs(ldaProbs, new File(modelDir, modelName + "-final"
+		loadWordTopicProbs(ldaProbs, new File(modelDir, estConf.getModel()
 				+ WORD_TOPIC_SUFFIX));
-		loadTopicDocProbs(ldaProbs, new File(modelDir, modelName + "-final"
+		loadTopicDocProbs(ldaProbs, new File(modelDir, estConf.getModel()
 				+ TOPIC_DOC_SUFFIX));
 		return ldaProbs;
 	}
@@ -43,7 +42,7 @@ public class LDAProbsLoader {
 		loadWordTopicProbs(ldaProbs, new File(infDir, infConf.getDataFile()
 				+ ".model-final" + WORD_TOPIC_SUFFIX));
 		loadTopicDocProbs(ldaProbs, new File(infDir, infConf.getDataFile()
-				+ ".model-final" +  TOPIC_DOC_SUFFIX));
+				+ ".model-final" + TOPIC_DOC_SUFFIX));
 		return ldaProbs;
 	}
 

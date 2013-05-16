@@ -12,6 +12,7 @@ import java.util.Properties;
 
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import ethz.nlp.headgen.data.CorpusCounts;
 import ethz.nlp.headgen.io.IOConfig;
 import ethz.nlp.headgen.io.ParsedDocReader;
 import ethz.nlp.headgen.io.ParsedDocWriter;
@@ -26,12 +27,15 @@ import ethz.nlp.headgen.rouge.RougeEvalBuilder;
 import ethz.nlp.headgen.rouge.RougeResults;
 import ethz.nlp.headgen.rouge.RougeScript;
 import ethz.nlp.headgen.sum.ArticleTopicNGramSum;
+import ethz.nlp.headgen.sum.Feature;
+import ethz.nlp.headgen.sum.FeatureBasedSummary;
 import ethz.nlp.headgen.sum.FirstBaseline;
 import ethz.nlp.headgen.sum.FirstSentSum;
 import ethz.nlp.headgen.sum.MostProbSentBasedOnTopicDocProb;
 import ethz.nlp.headgen.sum.MostProbSentSimpleGreedy;
 import ethz.nlp.headgen.sum.SecondBaseline;
 import ethz.nlp.headgen.sum.Summerizer;
+import ethz.nlp.headgen.sum.Tf_IdfFeature;
 import ethz.nlp.headgen.util.ConfigFactory;
 import ethz.nlp.headgen.xml.XMLDoc;
 
@@ -213,11 +217,11 @@ public class main {
 		}
 		summarizers.add(s);
 
-//		s = new Summerizer[docs.size()];
-//		for (int i = 0; i < s.length; i++) {
-//			s[i] = new SecondBaseline(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
-//		}
-//		summarizers.add(s);
+		// s = new Summerizer[docs.size()];
+		// for (int i = 0; i < s.length; i++) {
+		// s[i] = new SecondBaseline(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
+		// }
+		// summarizers.add(s);
 
 		s = new Summerizer[docs.size()];
 		for (int i = 0; i < s.length; i++) {
@@ -226,11 +230,11 @@ public class main {
 		}
 		summarizers.add(s);
 
-//		s = new Summerizer[docs.size()];
-//		for (int i = 0; i < s.length; i++) {
-//			s[i] = new NeFreqBasedSum(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
-//		}
-//		summarizers.add(s);
+		// s = new Summerizer[docs.size()];
+		// for (int i = 0; i < s.length; i++) {
+		// s[i] = new NeFreqBasedSum(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
+		// }
+		// summarizers.add(s);
 
 		s = new Summerizer[docs.size()];
 		for (int i = 0; i < s.length; i++) {
@@ -239,14 +243,23 @@ public class main {
 		}
 		summarizers.add(s);
 
-		for (NGramProbs[] prob : probs) {
-			s = new Summerizer[docs.size()];
-			for (int i = 0; i < s.length; i++) {
-				s[i] = new MostProbSentSimpleGreedy(docs.get(i),
-						DEFAULT_MAX_SUMMARY_LENGTH, prob[i]);
-			}
-			summarizers.add(s);
+		s = new Summerizer[docs.size()];
+		CorpusCounts counts = CorpusCounts.generateCounts(docs);
+		for (int i = 0; i < s.length; i++) {
+			Feature f = new Tf_IdfFeature(1, counts, docs.get(i));
+			s[i] = new FeatureBasedSummary(docs.get(i),
+					DEFAULT_MAX_SUMMARY_LENGTH, f);
 		}
+		summarizers.add(s);
+
+		// for (NGramProbs[] prob : probs) {
+		// s = new Summerizer[docs.size()];
+		// for (int i = 0; i < s.length; i++) {
+		// s[i] = new MostProbSentSimpleGreedy(docs.get(i),
+		// DEFAULT_MAX_SUMMARY_LENGTH, prob[i]);
+		// }
+		// summarizers.add(s);
+		// }
 
 		return summarizers;
 	}

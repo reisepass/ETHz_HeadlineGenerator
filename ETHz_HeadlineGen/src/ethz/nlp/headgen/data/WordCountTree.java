@@ -1,20 +1,11 @@
 package ethz.nlp.headgen.data;
 
-import com.googlecode.concurrenttrees.radix.ConcurrentRadixTree;
-import com.googlecode.concurrenttrees.radix.node.NodeFactory;
-import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
+import java.io.Serializable;
 
-public class WordCountTree extends ConcurrentRadixTree<WordCount> {
+@SuppressWarnings("serial")
+public class WordCountTree extends WordCountDummy implements Serializable {
 	private WordCount max = new WordCount();
 	private long total = 0;
-
-	public WordCountTree() {
-		this(new DefaultCharArrayNodeFactory());
-	}
-
-	public WordCountTree(NodeFactory nodeFactory) {
-		super(nodeFactory);
-	}
 
 	public WordCount put(CharSequence key) {
 		return putIfAbsent(key, new WordCount());
