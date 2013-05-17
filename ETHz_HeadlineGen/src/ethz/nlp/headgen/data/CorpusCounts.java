@@ -31,6 +31,29 @@ public class CorpusCounts implements Serializable {
 	private CorpusCounts() {
 	}
 
+	public static CorpusCounts generateCountsFromCollapsed(String collapsedFile)
+			throws IOException {
+		BufferedReader br = null;
+		String line;
+		CorpusCounts counts = new CorpusCounts();
+		int count = 0;
+		try {
+			br = new BufferedReader(new FileReader(new File(collapsedFile)));
+
+			while ((line = br.readLine()) != null) {
+				if (++count % 500 == 0) {
+					System.out.println("Adding counts for document " + count);
+				}
+				counts.addCounts(line);
+			}
+		} finally {
+			if (br != null) {
+				br.close();
+			}
+		}
+		return counts;
+	}
+
 	public static CorpusCounts generateCounts(String docMapFile)
 			throws IOException {
 		BufferedReader br = null;
@@ -114,5 +137,5 @@ public class CorpusCounts implements Serializable {
 
 	public WordCountTree getDocAppearanceCounts() {
 		return docAppearanceCounts;
-	} 
+	}
 }

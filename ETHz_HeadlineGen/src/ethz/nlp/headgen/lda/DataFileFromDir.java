@@ -6,12 +6,12 @@ import java.io.IOException;
 
 import ethz.nlp.headgen.util.FileIO;
 
-public class DataFile {
+public class DataFileFromDir {
 
 	private int count = 0, numFiles;
 	private File dir;
 
-	public DataFile(File dir) {
+	public DataFileFromDir(File dir) {
 		this.dir = dir;
 	}
 
@@ -75,7 +75,7 @@ public class DataFile {
 	public static void main(String[] args) throws IOException {
 		File rawDir = new File("data/news200");
 		File out = new File("data/lda/LDA.dat");
-		DataFile df = new DataFile(rawDir);
+		DataFileFromDir df = new DataFileFromDir(rawDir);
 		df.createDataFile(out);
 	}
 }

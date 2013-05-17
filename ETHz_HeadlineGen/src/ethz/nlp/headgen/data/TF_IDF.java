@@ -11,27 +11,30 @@ public class TF_IDF {
 
 	public static double calc(String word, Doc d, CorpusCounts c) {
 		double docCount;
-		 if (d.getWordCount().getValueForExactKey(word)==null)
-			 docCount=0;
-		 else
-			 docCount = d.getWordCount().getValueForExactKey(word).getCount();
+		if (d.getWordCount().getValueForExactKey(word) == null)
+			docCount = 0;
+		else
+			docCount = d.getWordCount().getValueForExactKey(word).getCount();
 		double maxCount = d.getWordCount().getMax();
 		double numDocs = c.getNumDocs();
 		double docAppearanceCount;
-		
-		if( 	c.getDocAppearanceCounts().getValueForExactKey(word)==null)
-			docAppearanceCount=0;
+
+		if (c.getDocAppearanceCounts().getValueForExactKey(word) == null)
+			docAppearanceCount = 0;
 		else
-			docAppearanceCount = c.getDocAppearanceCounts().getValueForExactKey(word).getCount();
+			docAppearanceCount = c.getDocAppearanceCounts()
+					.getValueForExactKey(word).getCount();
 		return (docCount / maxCount)
 				* (Math.log(numDocs / (1 + docAppearanceCount)));
 	}
 
 	public static void main(String[] args) throws IOException {
-		CorpusCounts counts = CorpusCounts
-				.generateCounts("data/lda/docmap.txt");
-		SerializableWrapper sw = new SerializableWrapper(counts);
-		sw.save("data/lda/full-100-model-counts");
+		// CorpusCounts counts = CorpusCounts
+		// .generateCountsFromCollapsed("data/all_raw");
+		// SerializableWrapper sw = new SerializableWrapper(counts);
+		// sw.save("data/all_raw_counts");
+		CorpusCounts counts = SerializableWrapper
+				.readObject("data/all_raw_counts");
 		System.out.println(counts.getNumDocs());
 		System.out.println(counts.getDocAppearanceCounts().getMax());
 

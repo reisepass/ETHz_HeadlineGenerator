@@ -20,8 +20,8 @@ public class FeatureBasedSummary implements Summerizer {
 	public static final String[] VERB_POS = { "VB", "VBD", "VBG", "VBN", "VBP",
 			"VBZ" };
 
-	private Doc doc;
-	private Feature[] features;
+	protected Doc doc;
+	protected Feature[] features;
 
 	public FeatureBasedSummary(Doc doc, int length, Feature... features) {
 		this.doc = doc;
@@ -47,7 +47,7 @@ public class FeatureBasedSummary implements Summerizer {
 	// frequently occuring named entities that occur before and after the verb
 	// (hopefully indicating whether it's the subject or object of the sentence)
 	@SuppressWarnings("unchecked")
-	private SortedSet<EntityEntry>[] getTopEntities() {
+	protected SortedSet<EntityEntry>[] getTopEntities() {
 		List<EntityEntry> subjectEntities = new ArrayList<EntityEntry>();
 		List<EntityEntry> objectEntities = new ArrayList<EntityEntry>();
 		Annotation a = doc.getAno();
@@ -93,7 +93,7 @@ public class FeatureBasedSummary implements Summerizer {
 				new TreeSet<EntityEntry>(objectEntities) };
 	}
 
-	private boolean isVerb(String pos) {
+	protected boolean isVerb(String pos) {
 		for (String verb : VERB_POS) {
 			if (verb.equals(pos)) {
 				return true;
@@ -102,7 +102,7 @@ public class FeatureBasedSummary implements Summerizer {
 		return false;
 	}
 
-	private SortedSet<WordEntry> getTopWords() {
+	protected SortedSet<WordEntry> getTopWords() {
 		SortedSet<WordEntry> topWords = new TreeSet<WordEntry>();
 		Annotation a = doc.getAno();
 		WordEntry entry;
@@ -126,7 +126,7 @@ public class FeatureBasedSummary implements Summerizer {
 		return topWords;
 	}
 
-	private double scoreWord(String word) {
+	protected double scoreWord(String word) {
 		double score = 0;
 		for (Feature f : features) {
 			score += f.calc(word);
@@ -150,8 +150,7 @@ public class FeatureBasedSummary implements Summerizer {
 		@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof WordEntry) {
-				return ((WordEntry) obj).token.get(TextAnnotation.class)
-						.equals(token.get(TextAnnotation.class));
+				return ((WordEntry) obj).getWord().equals(getWord());
 			}
 			return false;
 		}
