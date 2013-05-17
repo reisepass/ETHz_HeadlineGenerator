@@ -22,10 +22,12 @@ public class FeatureBasedSummary implements Summerizer {
 
 	protected Doc doc;
 	protected Feature[] features;
+	protected int length;
 
 	public FeatureBasedSummary(Doc doc, int length, Feature... features) {
 		this.doc = doc;
 		this.features = features;
+		this.length = length;
 	}
 
 	@Override
