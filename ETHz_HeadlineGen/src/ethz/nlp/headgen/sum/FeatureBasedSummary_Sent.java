@@ -10,6 +10,7 @@ import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.util.CoreMap;
 import ethz.nlp.headgen.Doc;
+import ethz.nlp.headgen.sum.features.Feature;
 
 public class FeatureBasedSummary_Sent extends FeatureBasedSummary implements
 		Summerizer {

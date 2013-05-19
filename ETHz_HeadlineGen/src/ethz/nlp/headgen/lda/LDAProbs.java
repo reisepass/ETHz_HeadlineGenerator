@@ -4,8 +4,6 @@ public interface LDAProbs {
 
 	public int getNumTopics();
 
-	public String[] getWordList();
-
 	public String[] getDocList();
 
 	/**

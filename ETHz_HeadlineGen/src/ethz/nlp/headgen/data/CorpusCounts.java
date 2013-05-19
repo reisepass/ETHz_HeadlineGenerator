@@ -18,6 +18,7 @@ import ethz.nlp.headgen.util.FileIO;
 
 @SuppressWarnings("serial")
 public class CorpusCounts implements Serializable {
+	public static final String SAVE_PATH = "data/all_raw_counts";
 	private static StanfordCoreNLP pipeline;
 	static {
 		Properties props = new Properties();

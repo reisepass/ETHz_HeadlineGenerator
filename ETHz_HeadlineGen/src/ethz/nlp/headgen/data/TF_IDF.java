@@ -29,14 +29,14 @@ public class TF_IDF {
 	}
 
 	public static void main(String[] args) throws IOException {
-		// CorpusCounts counts = CorpusCounts
-		// .generateCountsFromCollapsed("data/all_raw");
-		// SerializableWrapper sw = new SerializableWrapper(counts);
-		// sw.save("data/all_raw_counts");
-		CorpusCounts counts = SerializableWrapper
-				.readObject("data/all_raw_counts");
-		System.out.println(counts.getNumDocs());
-		System.out.println(counts.getDocAppearanceCounts().getMax());
+		 CorpusCounts counts = CorpusCounts
+		 .generateCountsFromCollapsed("data/all_raw");
+		 SerializableWrapper sw = new SerializableWrapper(counts);
+		 sw.save("data/all_raw_counts");
+//		CorpusCounts counts = SerializableWrapper
+//				.readObject("data/all_raw_counts");
+//		System.out.println(counts.getNumDocs());
+//		System.out.println(counts.getDocAppearanceCounts().getMax());
 
 		// System.out.println("Generating corpus word counts");
 		// CorpusCounts counts = CorpusCounts.generateCounts(m.documents);

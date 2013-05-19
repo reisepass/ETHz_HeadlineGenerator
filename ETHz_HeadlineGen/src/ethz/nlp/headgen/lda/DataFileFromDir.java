@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import ethz.nlp.headgen.util.FileIO;
+import ethz.nlp.headgen.xml.XMLDoc;
 
 public class DataFileFromDir {
 
@@ -49,10 +49,14 @@ public class DataFileFromDir {
 				writeFiles(f, docMapWriter, dataFileWriter);
 			} else {
 				try {
-					System.out.println("Writing file " + ++count + "/" + numFiles);
+					System.out.println("Writing file " + ++count + "/"
+							+ numFiles);
 					docMapWriter.write(f.getPath() + "\n");
-					dataFileWriter.write(RawToLDA.convert(FileIO
-							.readTextFile(f)) + "\n");
+					String docText = XMLDoc.readXML(f).cont;
+
+					docText = docText.replaceAll("\\([^\\(]*\\)", "");
+					docText = docText.replaceAll("\n", " ");
+					dataFileWriter.write(RawToLDA.convert(docText) + "\n");
 				} catch (IOException e) {
 					continue;
 				}
@@ -73,8 +77,8 @@ public class DataFileFromDir {
 	}
 
 	public static void main(String[] args) throws IOException {
-		File rawDir = new File("data/news200");
-		File out = new File("data/lda/LDA.dat");
+		File rawDir = new File("data/raw");
+		File out = new File("data/lda/test/newdocs.dat");
 		DataFileFromDir df = new DataFileFromDir(rawDir);
 		df.createDataFile(out);
 	}

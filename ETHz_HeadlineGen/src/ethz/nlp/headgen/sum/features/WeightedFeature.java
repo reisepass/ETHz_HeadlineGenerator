@@ -1,4 +1,4 @@
-package ethz.nlp.headgen.sum;
+package ethz.nlp.headgen.sum.features;
 
 public abstract class WeightedFeature implements Feature {
 	protected double weight;

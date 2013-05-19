@@ -23,10 +23,10 @@ public class LDAProbsLoader {
 			throws IOException {
 		File modelDir = new File(estConf.getModelDir());
 
-		LDAProbsImpl ldaProbs = new LDAProbsImpl(getWordList(modelDir),
-				getDocList(modelDir));
+		String[] wordList = getWordList(modelDir);
+		LDAProbsImpl ldaProbs = new LDAProbsImpl(getDocList(modelDir));
 		loadWordTopicProbs(ldaProbs, new File(modelDir, estConf.getModel()
-				+ WORD_TOPIC_SUFFIX));
+				+ WORD_TOPIC_SUFFIX), wordList);
 		loadTopicDocProbs(ldaProbs, new File(modelDir, estConf.getModel()
 				+ TOPIC_DOC_SUFFIX));
 		return ldaProbs;
@@ -37,12 +37,12 @@ public class LDAProbsLoader {
 		File modelDir = new File(estConf.getModelDir()), infDir = new File(
 				infConf.getModelDir());
 
-		LDAProbsImpl ldaProbs = new LDAProbsImpl(getWordList(modelDir),
-				getDocList(infDir));
+		String[] wordList = getWordList(modelDir);
+		LDAProbsImpl ldaProbs = new LDAProbsImpl(getDocList(infDir));
 		loadWordTopicProbs(ldaProbs, new File(infDir, infConf.getDataFile()
-				+ ".model-final" + WORD_TOPIC_SUFFIX));
+				+ "model-final" + WORD_TOPIC_SUFFIX), wordList);
 		loadTopicDocProbs(ldaProbs, new File(infDir, infConf.getDataFile()
-				+ ".model-final" + TOPIC_DOC_SUFFIX));
+				+ "model-final" + TOPIC_DOC_SUFFIX));
 		return ldaProbs;
 	}
 
@@ -89,8 +89,8 @@ public class LDAProbsLoader {
 	}
 
 	// FORMAT: Each line is a topic, each column is a word in the vocabulary
-	private static void loadWordTopicProbs(LDAProbsImpl ldaProbs, File file)
-			throws IOException {
+	private static void loadWordTopicProbs(LDAProbsImpl ldaProbs, File file,
+			String[] wordList) throws IOException {
 		BufferedReader br = null;
 		String line;
 		String[] vals;
@@ -100,7 +100,8 @@ public class LDAProbsLoader {
 			while ((line = br.readLine()) != null) {
 				vals = line.split(" ");
 				for (int i = 0; i < vals.length; i++) {
-					ldaProbs.putWordTopic(i, topic, Double.parseDouble(vals[i]));
+					ldaProbs.putWordTopic(i, topic,
+							Double.parseDouble(vals[i]), wordList);
 				}
 				topic++;
 			}
@@ -140,16 +141,15 @@ public class LDAProbsLoader {
 				new DefaultCharArrayNodeFactory());
 		private ConcurrentRadixTree<Double> topicDocProbs = new ConcurrentRadixTree<Double>(
 				new DefaultCharArrayNodeFactory());
-		private String[] wordList;
 		private String[] docList;
 		private int numTopics;
 
-		public LDAProbsImpl(String[] wordList, String[] docList) {
-			this.wordList = wordList;
+		public LDAProbsImpl(String[] docList) {
 			this.docList = docList;
 		}
 
-		protected void putWordTopic(int word, int topic, Double prob) {
+		protected void putWordTopic(int word, int topic, Double prob,
+				String[] wordList) {
 			wordTopicProbs.put(getKey(wordList[word], "" + topic), prob);
 		}
 
@@ -163,17 +163,14 @@ public class LDAProbsLoader {
 
 		@Override
 		public double getWordTopicProb(String word, int topic) {
-			return wordTopicProbs.getValueForExactKey(getKey(word, "" + topic));
+			Double val = wordTopicProbs.getValueForExactKey(getKey(word, ""
+					+ topic));
+			return val == null ? -1 : val;
 		}
 
 		@Override
 		public double getTopicDocProb(int topic, String doc) {
 			return topicDocProbs.getValueForExactKey(getKey("" + topic, doc));
-		}
-
-		@Override
-		public String[] getWordList() {
-			return wordList;
 		}
 
 		@Override

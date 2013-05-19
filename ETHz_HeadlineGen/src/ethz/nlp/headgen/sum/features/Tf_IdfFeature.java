@@ -1,4 +1,4 @@
-package ethz.nlp.headgen.sum;
+package ethz.nlp.headgen.sum.features;
 
 import ethz.nlp.headgen.Doc;
 import ethz.nlp.headgen.data.CorpusCounts;
@@ -8,6 +8,10 @@ public class Tf_IdfFeature extends WeightedFeature {
 	private CorpusCounts counts;
 	private Doc doc;
 
+	public Tf_IdfFeature(CorpusCounts counts, Doc doc) {
+		this(1, counts, doc);
+	}
+	
 	public Tf_IdfFeature(double weight, CorpusCounts counts, Doc doc) {
 		super(weight);
 		this.counts = counts;

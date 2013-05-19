@@ -14,6 +14,7 @@ import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.util.CoreMap;
 import ethz.nlp.headgen.Doc;
+import ethz.nlp.headgen.sum.features.Feature;
 
 public class FeatureBasedSummary implements Summerizer {
 	public static final int NUM_TOP_WORDS = 20;
@@ -40,7 +41,7 @@ public class FeatureBasedSummary implements Summerizer {
 			if (topVerb == null && isVerb(w.getWord())) {
 				topVerb = w.getWord();
 			}
-			sb.append(w.token.get(TextAnnotation.class));
+			sb.append(w.token.get(TextAnnotation.class) + " ");
 		}
 		return sb.toString();
 	}
@@ -82,7 +83,7 @@ public class FeatureBasedSummary implements Summerizer {
 				} else {
 					if (subjectEntities.contains(entry)) {
 						// increment occurence count
-						subjectEntities.get(objectEntities.indexOf(entry)).occurences++;
+						subjectEntities.get(subjectEntities.indexOf(entry)).occurences++;
 					} else {
 						// add to the list
 						subjectEntities.add(entry);

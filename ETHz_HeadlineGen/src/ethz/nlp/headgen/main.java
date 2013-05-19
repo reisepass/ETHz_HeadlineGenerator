@@ -16,6 +16,7 @@ import ethz.nlp.headgen.data.CorpusCounts;
 import ethz.nlp.headgen.io.IOConfig;
 import ethz.nlp.headgen.io.ParsedDocReader;
 import ethz.nlp.headgen.io.ParsedDocWriter;
+import ethz.nlp.headgen.io.SerializableWrapper;
 import ethz.nlp.headgen.lda.DocCluster;
 import ethz.nlp.headgen.lda.LDAEstimatorConfig;
 import ethz.nlp.headgen.lda.LDAInferenceConfig;
@@ -27,13 +28,14 @@ import ethz.nlp.headgen.rouge.RougeEvalBuilder;
 import ethz.nlp.headgen.rouge.RougeResults;
 import ethz.nlp.headgen.rouge.RougeScript;
 import ethz.nlp.headgen.sum.ArticleTopicNGramSum;
-import ethz.nlp.headgen.sum.Feature;
 import ethz.nlp.headgen.sum.FeatureBasedSummary;
 import ethz.nlp.headgen.sum.FirstBaseline;
 import ethz.nlp.headgen.sum.FirstSentSum;
 import ethz.nlp.headgen.sum.MostProbSentBasedOnTopicDocProb;
 import ethz.nlp.headgen.sum.Summerizer;
-import ethz.nlp.headgen.sum.Tf_IdfFeature;
+import ethz.nlp.headgen.sum.features.Feature;
+import ethz.nlp.headgen.sum.features.LDAFeature;
+import ethz.nlp.headgen.sum.features.Tf_IdfFeature;
 import ethz.nlp.headgen.util.ConfigFactory;
 import ethz.nlp.headgen.xml.XMLDoc;
 
@@ -133,29 +135,32 @@ public class main {
 
 		// Load topic models
 		System.err.println("Loading topic models");
-		LDAProbs baseModel = LDAProbsLoader.loadLDAProbs(estConf);
+		// LDAProbs baseModel = LDAProbsLoader.loadLDAProbs(estConf);
 		LDAProbs inferredModel = LDAProbsLoader.loadLDAProbs(estConf, infConf);
 
 		// Assign docs to clusters
-		System.err.println("Assigning docs to clusters");
-		DocCluster trainCluster = new DocCluster(baseModel);
-		List<Integer> clusterAssign = m.assignDocClusters(inferredModel);
+		// System.err.println("Assigning docs to clusters");
+		// DocCluster trainCluster = new DocCluster(baseModel);
+		// List<Integer> clusterAssign = m.assignDocClusters(inferredModel);
 
 		// Get a list of ngram probabilities for each document
-		System.err.println("Getting doc ngram probabilities");
-		List<NGramProbs[]> probs = m.genDocNGramProbs(clusterAssign,
-				trainCluster);
+		// System.err.println("Getting doc ngram probabilities");
+		// List<NGramProbs[]> probs = m.genDocNGramProbs(clusterAssign,
+		// trainCluster);
 
 		System.err.println("Generating list of summarizers");
+		// List<Summerizer[]> summarizers =
+		// m.generateSummarizerList(m.documents,
+		// probs, inferredModel);
 		List<Summerizer[]> summarizers = m.generateSummarizerList(m.documents,
-				probs);
+				null, inferredModel);
 
 		for (Summerizer[] s : summarizers) {
 			System.err.println("Generating summaries for " + s.getClass());
 			// Generate summaries
 			for (int i = 0; i < s.length; i++) {
 				m.generateSummary(m.documents.get(i), s[i]);
-				// System.out.println(m.documents.get(i).summary);
+				System.out.println(m.documents.get(i).summary);
 			}
 
 			// Write the summaries to disk
@@ -200,7 +205,7 @@ public class main {
 	}
 
 	private List<Summerizer[]> generateSummarizerList(List<Doc> docs,
-			List<NGramProbs[]> probs) {
+			List<NGramProbs[]> probs, LDAProbs inferredProbs) {
 		List<Summerizer[]> summarizers = new ArrayList<Summerizer[]>();
 
 		Summerizer[] s = new Summerizer[docs.size()];
@@ -242,11 +247,17 @@ public class main {
 		summarizers.add(s);
 
 		s = new Summerizer[docs.size()];
-		CorpusCounts counts = CorpusCounts.generateCounts(docs);
+		CorpusCounts counts;
+		try {
+			counts = SerializableWrapper.readObject(CorpusCounts.SAVE_PATH);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 		for (int i = 0; i < s.length; i++) {
-			Feature f = new Tf_IdfFeature(1, counts, docs.get(i));
+			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
+			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
 			s[i] = new FeatureBasedSummary(docs.get(i),
-					DEFAULT_MAX_SUMMARY_LENGTH, f);
+					DEFAULT_MAX_SUMMARY_LENGTH, tf_idf, lda);
 		}
 		summarizers.add(s);
 
