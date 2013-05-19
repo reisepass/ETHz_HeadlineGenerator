@@ -117,7 +117,7 @@ public class FeatureBasedSummary implements Summerizer {
 				continue;
 			}
 
-			entry.score = scoreWord(entry.token.get(TextAnnotation.class));
+			entry.score = scoreWord(entry.token);
 			if (topWords.size() < NUM_TOP_WORDS) {
 				topWords.add(entry);
 			} else if (entry.score > topWords.last().score) {
@@ -129,10 +129,10 @@ public class FeatureBasedSummary implements Summerizer {
 		return topWords;
 	}
 
-	protected double scoreWord(String word) {
+	protected double scoreWord(CoreLabel token) {
 		double score = 0;
 		for (Feature f : features) {
-			score += f.calc(word);
+			score += f.calc(token);
 		}
 		return score;
 	}

@@ -32,7 +32,7 @@ public class FeatureBasedSummary_Sent extends FeatureBasedSummary implements
 				String wrd = token.get(TextAnnotation.class);
 				String pos = token.get(PartOfSpeechAnnotation.class);
 				sentLength = sentLength + wrd.length();
-				sentScore = sentScore + scoreWord(wrd);
+				sentScore = sentScore + scoreWord(token);
 				sentPrint = sentPrint +" "+ wrd;
 			}
 			double perCharacterScore = sentScore / sentLength;

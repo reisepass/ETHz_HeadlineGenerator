@@ -1,5 +1,7 @@
 package ethz.nlp.headgen.sum.features;
 
+import edu.stanford.nlp.ling.CoreLabel;
+
 public abstract class WeightedFeature implements Feature {
 	protected double weight;
 
@@ -8,9 +10,9 @@ public abstract class WeightedFeature implements Feature {
 	}
 
 	@Override
-	public double calc(String word) {
-		return weight * doCalc(word);
+	public double calc(CoreLabel wordAnnotation) {
+		return weight * doCalc(wordAnnotation);
 	}
 
-	protected abstract double doCalc(String word);
+	protected abstract double doCalc(CoreLabel wordAnnotation);
 }
