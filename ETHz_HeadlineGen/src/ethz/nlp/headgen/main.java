@@ -29,9 +29,11 @@ import ethz.nlp.headgen.rouge.RougeScript;
 import ethz.nlp.headgen.sum.ArticleTopicNGramSum;
 import ethz.nlp.headgen.sum.Feature;
 import ethz.nlp.headgen.sum.FeatureBasedSummary;
+import ethz.nlp.headgen.sum.FeatureBasedSummary_Sent;
 import ethz.nlp.headgen.sum.FirstBaseline;
 import ethz.nlp.headgen.sum.FirstSentSum;
 import ethz.nlp.headgen.sum.MostProbSentBasedOnTopicDocProb;
+import ethz.nlp.headgen.sum.MostProbSentSimpleGreedy;
 import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.sum.Tf_IdfFeature;
 import ethz.nlp.headgen.util.ConfigFactory;
@@ -138,8 +140,8 @@ public class main {
 
 		// Assign docs to clusters
 		System.err.println("Assigning docs to clusters");
-		DocCluster trainCluster = new DocCluster(baseModel);
-		List<Integer> clusterAssign = m.assignDocClusters(inferredModel);
+		DocCluster trainCluster = new DocCluster(baseModel); 
+		List<Integer> clusterAssign = m.assignDocClusters(inferredModel);  //this took about 5 min
 
 		// Get a list of ngram probabilities for each document
 		System.err.println("Getting doc ngram probabilities");
@@ -155,9 +157,12 @@ public class main {
 			// Generate summaries
 			for (int i = 0; i < s.length; i++) {
 				m.generateSummary(m.documents.get(i), s[i]);
+				int a = 1+1;
 				// System.out.println(m.documents.get(i).summary);
 			}
 
+			
+			
 			// Write the summaries to disk
 			m.writeSummaries();
 
@@ -173,6 +178,8 @@ public class main {
 			RougeResults results = rs.run(rougeInFile);
 			System.out.println(s[0].getClass());
 			System.out.println(results.getNgramAvgF(1));
+			
+			
 		}
 	}
 
@@ -192,8 +199,7 @@ public class main {
 
 		NGramProbs[] probs = new NGramProbs[clusterAssign.size()];
 		for (int i = 0; i < clusterAssign.size(); i++) {
-			probs[i] = new NoFilterAddTestCorpus(
-					trainCluster.getClusterNgramProbs(clusterAssign.get(i)));
+			probs[i] = new NoFilterAddTestCorpus(trainCluster.getClusterNgramProbs(clusterAssign.get(i)));
 		}
 		probsList.add(probs);
 		return probsList;
@@ -221,6 +227,8 @@ public class main {
 		// }
 		// summarizers.add(s);
 
+		/*  // need to change constructors to include corpus TreeMap
+		 
 		s = new Summerizer[docs.size()];
 		for (int i = 0; i < s.length; i++) {
 			s[i] = new ArticleTopicNGramSum(docs.get(i),
@@ -240,9 +248,28 @@ public class main {
 					DEFAULT_MAX_SUMMARY_LENGTH);
 		}
 		summarizers.add(s);
-
+		 */
+		
+		s = new Summerizer[docs.size()];
+		for (int i = 0; i < s.length; i++) {
+			s[i] = new MostProbSentSimpleGreedy(docs.get(i),
+					DEFAULT_MAX_SUMMARY_LENGTH,probs.get(0)[i]);  //TODO I think this array has the topic ngrams for each documents infered topic. In the same order as the doc 
+		}  //Doc doc, int summaryLength, NGramProbs corpusNgramsAndProbs
+		summarizers.add(s);
+		
+		
+		
 		s = new Summerizer[docs.size()];
 		CorpusCounts counts = CorpusCounts.generateCounts(docs);
+		for (int i = 0; i < s.length; i++) {
+			Feature f = new Tf_IdfFeature(1, counts, docs.get(i));
+			s[i] = new FeatureBasedSummary_Sent(docs.get(i),
+					DEFAULT_MAX_SUMMARY_LENGTH, f);
+		}
+		summarizers.add(s);
+		
+		s = new Summerizer[docs.size()];
+		
 		for (int i = 0; i < s.length; i++) {
 			Feature f = new Tf_IdfFeature(1, counts, docs.get(i));
 			s[i] = new FeatureBasedSummary(docs.get(i),

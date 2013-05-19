@@ -51,8 +51,11 @@ public class DocNGramSimple implements DocNGramProbs {
 		return ngrams;
 	}
 
-	private WordCountTree getCounts(String[] words) {
+	private WordCountTree getCounts(String[] words) {	
 		WordCountTree tree = new WordCountTree();
+		if(words==null||words.length<n)
+			return tree; 
+		
 		String[] ngramWords = new String[n];
 
 		for (int i = 0; i < n; i++) {

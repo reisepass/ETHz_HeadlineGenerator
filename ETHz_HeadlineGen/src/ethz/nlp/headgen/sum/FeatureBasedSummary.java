@@ -40,7 +40,7 @@ public class FeatureBasedSummary implements Summerizer {
 			if (topVerb == null && isVerb(w.getWord())) {
 				topVerb = w.getWord();
 			}
-			sb.append(w.token.get(TextAnnotation.class));
+			sb.append(w.token.get(TextAnnotation.class)+" ");
 		}
 		return sb.toString();
 	}
@@ -82,7 +82,7 @@ public class FeatureBasedSummary implements Summerizer {
 				} else {
 					if (subjectEntities.contains(entry)) {
 						// increment occurence count
-						subjectEntities.get(objectEntities.indexOf(entry)).occurences++;
+						subjectEntities.get(subjectEntities.indexOf(entry)).occurences++;
 					} else {
 						// add to the list
 						subjectEntities.add(entry);
