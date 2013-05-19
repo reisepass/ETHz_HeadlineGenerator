@@ -24,6 +24,11 @@ public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
 		super(doc, summaryLength);
 		// TODO Auto-generated constructor stub
 	}
+	public ArticleTopicNGramSum(Doc doc, TreeMap<ArrayList<String>,Double> ngramsIn, int summaryLength) {
+		super(doc, summaryLength);
+		topicWeightedNgrams=ngramsIn;
+		// TODO Auto-generated constructor stub
+	}
 	
 
 	protected ArrayList<String> wildWithInpAtBack(String inp,int ngramLength){
@@ -165,7 +170,7 @@ public class ArticleTopicNGramSum extends FirstSentSum implements Summerizer {
 	public String summary() {
 			StringBuilder strBld = new StringBuilder();
 			String out="##################################### #";
-			testData();  //TODO <- Instead of doing this we need to save the real topicWeighted ngrams for this article to var topicWeightedNgrams
+			//testData();  //TODO <- Instead of doing this we need to save the real topicWeighted ngrams for this article to var topicWeightedNgrams
 			NgramSimple topicNgrams = new NgramLightFilter(topicWeightedNgrams,2,1);
 			TreeMap<ArrayList<String>,Double> filtered = topicNgrams.filterNgrams(doc);
 				 

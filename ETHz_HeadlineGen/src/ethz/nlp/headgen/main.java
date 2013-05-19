@@ -27,11 +27,10 @@ import ethz.nlp.headgen.prob.NoFilterAddTestCorpus;
 import ethz.nlp.headgen.rouge.RougeEvalBuilder;
 import ethz.nlp.headgen.rouge.RougeResults;
 import ethz.nlp.headgen.rouge.RougeScript;
-import ethz.nlp.headgen.sum.ArticleTopicNGramSum;
 import ethz.nlp.headgen.sum.FeatureBasedSummary;
 import ethz.nlp.headgen.sum.FirstBaseline;
 import ethz.nlp.headgen.sum.FirstSentSum;
-import ethz.nlp.headgen.sum.MostProbSentBasedOnTopicDocProb;
+import ethz.nlp.headgen.sum.MostProbSentSimpleGreedy;
 import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.sum.features.Feature;
 import ethz.nlp.headgen.sum.features.LDAFeature;
@@ -135,13 +134,17 @@ public class main {
 
 		// Load topic models
 		System.err.println("Loading topic models");
-		// LDAProbs baseModel = LDAProbsLoader.loadLDAProbs(estConf);
+		LDAProbs baseModel = LDAProbsLoader.loadLDAProbs(estConf);
 		LDAProbs inferredModel = LDAProbsLoader.loadLDAProbs(estConf, infConf);
 
 		// Assign docs to clusters
-		// System.err.println("Assigning docs to clusters");
-		// DocCluster trainCluster = new DocCluster(baseModel);
-		// List<Integer> clusterAssign = m.assignDocClusters(inferredModel);
+		System.err.println("Assigning docs to clusters");
+		DocCluster trainCluster = new DocCluster(baseModel);
+		List<Integer> clusterAssign = m.assignDocClusters(inferredModel); // this
+																			// took
+																			// about
+																			// 5
+																			// min
 
 		// Get a list of ngram probabilities for each document
 		// System.err.println("Getting doc ngram probabilities");
@@ -160,7 +163,7 @@ public class main {
 			// Generate summaries
 			for (int i = 0; i < s.length; i++) {
 				m.generateSummary(m.documents.get(i), s[i]);
-				System.out.println(m.documents.get(i).summary);
+				// System.out.println(m.documents.get(i).summary);
 			}
 
 			// Write the summaries to disk
@@ -178,6 +181,7 @@ public class main {
 			RougeResults results = rs.run(rougeInFile);
 			System.out.println(s[0].getClass());
 			System.out.println(results.getNgramAvgF(1));
+
 		}
 	}
 
@@ -226,24 +230,39 @@ public class main {
 		// }
 		// summarizers.add(s);
 
+		/*
+		 * // need to change constructors to include corpus TreeMap
+		 * 
+		 * s = new Summerizer[docs.size()]; for (int i = 0; i < s.length; i++) {
+		 * s[i] = new ArticleTopicNGramSum(docs.get(i),
+		 * DEFAULT_MAX_SUMMARY_LENGTH); } summarizers.add(s);
+		 * 
+		 * // s = new Summerizer[docs.size()]; // for (int i = 0; i < s.length;
+		 * i++) { // s[i] = new NeFreqBasedSum(docs.get(i),
+		 * DEFAULT_MAX_SUMMARY_LENGTH); // } // summarizers.add(s);
+		 * 
+		 * s = new Summerizer[docs.size()]; for (int i = 0; i < s.length; i++) {
+		 * s[i] = new MostProbSentBasedOnTopicDocProb(docs.get(i),
+		 * DEFAULT_MAX_SUMMARY_LENGTH); } summarizers.add(s);
+		 */
+
 		s = new Summerizer[docs.size()];
 		for (int i = 0; i < s.length; i++) {
-			s[i] = new ArticleTopicNGramSum(docs.get(i),
-					DEFAULT_MAX_SUMMARY_LENGTH);
-		}
-		summarizers.add(s);
-
-		// s = new Summerizer[docs.size()];
-		// for (int i = 0; i < s.length; i++) {
-		// s[i] = new NeFreqBasedSum(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
-		// }
-		// summarizers.add(s);
-
-		s = new Summerizer[docs.size()];
-		for (int i = 0; i < s.length; i++) {
-			s[i] = new MostProbSentBasedOnTopicDocProb(docs.get(i),
-					DEFAULT_MAX_SUMMARY_LENGTH);
-		}
+			s[i] = new MostProbSentSimpleGreedy(docs.get(i),
+					DEFAULT_MAX_SUMMARY_LENGTH, probs.get(0)[i]); // TODO I
+																	// think
+																	// this
+																	// array has
+																	// the topic
+																	// ngrams
+																	// for each
+																	// documents
+																	// infered
+																	// topic. In
+																	// the same
+																	// order as
+																	// the doc
+		} // Doc doc, int summaryLength, NGramProbs corpusNgramsAndProbs
 		summarizers.add(s);
 
 		s = new Summerizer[docs.size()];

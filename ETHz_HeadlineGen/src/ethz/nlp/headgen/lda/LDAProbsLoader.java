@@ -170,7 +170,10 @@ public class LDAProbsLoader {
 
 		@Override
 		public double getTopicDocProb(int topic, String doc) {
-			return topicDocProbs.getValueForExactKey(getKey("" + topic, doc));
+			if(topicDocProbs.getValueForExactKey(getKey("" + topic, doc))!=null)
+				return topicDocProbs.getValueForExactKey(getKey("" + topic, doc));
+			else
+				return 0;
 		}
 
 		@Override

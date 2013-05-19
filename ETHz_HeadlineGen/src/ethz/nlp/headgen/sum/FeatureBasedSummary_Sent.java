@@ -33,7 +33,7 @@ public class FeatureBasedSummary_Sent extends FeatureBasedSummary implements
 				String pos = token.get(PartOfSpeechAnnotation.class);
 				sentLength = sentLength + wrd.length();
 				sentScore = sentScore + scoreWord(wrd);
-				sentPrint = sentPrint + wrd;
+				sentPrint = sentPrint +" "+ wrd;
 			}
 			double perCharacterScore = sentScore / sentLength;
 			if (sentLength > length) { // Pruning off score for sentences
@@ -50,8 +50,10 @@ public class FeatureBasedSummary_Sent extends FeatureBasedSummary implements
 
 		if (bestSentence.equals("")) {
 			return "ERROR"; // should not be possible to get here
-		} else
+		} else{
+			
 			return bestSentence; // TODO this sentence may need to be pruned
+		}
 
 	}
 
