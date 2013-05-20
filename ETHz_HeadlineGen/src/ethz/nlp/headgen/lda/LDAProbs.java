@@ -1,6 +1,8 @@
 package ethz.nlp.headgen.lda;
 
-public interface LDAProbs {
+import java.io.Serializable;
+
+public interface LDAProbs extends Serializable {
 
 	public int getNumTopics();
 

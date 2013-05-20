@@ -8,15 +8,41 @@ import java.io.IOException;
 import com.googlecode.concurrenttrees.radix.ConcurrentRadixTree;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
 
+import ethz.nlp.headgen.io.SerializableWrapper;
 import ethz.nlp.headgen.util.ConfigFactory;
 
 public class LDAProbsLoader {
+	public static final String MODEL_PROBS_100_SAVE_PATH = "data/model-100_lda_probs";
+	public static final String MODEL_PROBS_500_SAVE_PATH = "data/model-500_lda_probs";
+	public static final String MODEL_PROBS_1000_SAVE_PATH = "data/model-1000_lda_probs";
+	public static final String INFERRED_PROBS_SAVE_PATH = "data/inf_lda_probs";
 	public static final String WORD_TOPIC_SUFFIX = ".phi";
 	public static final String TOPIC_DOC_SUFFIX = ".theta";
 	public static final String WORDMAP = "wordmap.txt";
 	public static final String DOCMAP = "docmap.txt";
+	public static final String COLLAPSED = "LDA.dat";
 
 	private LDAProbsLoader() {
+	}
+
+	public static LDAProbs loadLDAProbsCollapsed(LDAEstimatorConfig estConf)
+			throws IOException {
+		File modelDir = new File(estConf.getModelDir());
+
+		System.err.println("Loading word list");
+		String[] wordList = getWordList(modelDir);
+
+		System.err.println("Loading collapsed doc list");
+		LDAProbsImpl ldaProbs = new LDAProbsImpl(getDocListCollapsed(modelDir));
+
+		System.err.println("Loading word/topic probs");
+		loadWordTopicProbs(ldaProbs, new File(modelDir, estConf.getModel()
+				+ WORD_TOPIC_SUFFIX), wordList);
+
+		System.err.println("Loading topic/doc probs");
+		loadTopicDocProbs(ldaProbs, new File(modelDir, estConf.getModel()
+				+ TOPIC_DOC_SUFFIX));
+		return ldaProbs;
 	}
 
 	public static LDAProbs loadLDAProbs(LDAEstimatorConfig estConf)
@@ -44,6 +70,26 @@ public class LDAProbsLoader {
 		loadTopicDocProbs(ldaProbs, new File(infDir, infConf.getDataFile()
 				+ "model-final" + TOPIC_DOC_SUFFIX));
 		return ldaProbs;
+	}
+
+	private static String[] getDocListCollapsed(File modelDir)
+			throws IOException {
+		BufferedReader br = null;
+		int index = 0;
+		String[] docs;
+		try {
+			br = new BufferedReader(new FileReader(
+					new File(modelDir, COLLAPSED)));
+			docs = new String[Integer.parseInt(br.readLine())];
+			while (br.readLine() != null) {
+				docs[index] = "" + index++;
+			}
+		} finally {
+			if (br != null) {
+				br.close();
+			}
+		}
+		return docs;
 	}
 
 	private static String[] getDocList(File modelDir) throws IOException {
@@ -98,6 +144,7 @@ public class LDAProbsLoader {
 		try {
 			br = new BufferedReader(new FileReader(file));
 			while ((line = br.readLine()) != null) {
+				System.err.println("Loading topic " + topic);
 				vals = line.split(" ");
 				for (int i = 0; i < vals.length; i++) {
 					ldaProbs.putWordTopic(i, topic,
@@ -123,6 +170,7 @@ public class LDAProbsLoader {
 		try {
 			br = new BufferedReader(new FileReader(file));
 			while ((line = br.readLine()) != null) {
+				System.err.println("Loading doc " + doc);
 				vals = line.split(" ");
 				for (int i = 0; i < vals.length; i++) {
 					ldaProbs.putTopicDoc(i, doc, Double.parseDouble(vals[i]));
@@ -136,13 +184,17 @@ public class LDAProbsLoader {
 		}
 	}
 
-	private static class LDAProbsImpl implements LDAProbs {
+	@SuppressWarnings("serial")
+	public static class LDAProbsImpl implements LDAProbs {
 		private ConcurrentRadixTree<Double> wordTopicProbs = new ConcurrentRadixTree<Double>(
 				new DefaultCharArrayNodeFactory());
 		private ConcurrentRadixTree<Double> topicDocProbs = new ConcurrentRadixTree<Double>(
 				new DefaultCharArrayNodeFactory());
 		private String[] docList;
 		private int numTopics;
+
+		public LDAProbsImpl() {
+		}
 
 		public LDAProbsImpl(String[] docList) {
 			this.docList = docList;
@@ -170,8 +222,9 @@ public class LDAProbsLoader {
 
 		@Override
 		public double getTopicDocProb(int topic, String doc) {
-			if(topicDocProbs.getValueForExactKey(getKey("" + topic, doc))!=null)
-				return topicDocProbs.getValueForExactKey(getKey("" + topic, doc));
+			if (topicDocProbs.getValueForExactKey(getKey("" + topic, doc)) != null)
+				return topicDocProbs
+						.getValueForExactKey(getKey("" + topic, doc));
 			else
 				return 0;
 		}
@@ -206,7 +259,16 @@ public class LDAProbsLoader {
 				LDAEstimatorConfig.class, LDAEstimatorConfig.DEFAULT);
 		LDAInferenceConfig infConf = ConfigFactory.loadConfiguration(
 				LDAInferenceConfig.class, LDAInferenceConfig.DEFAULT);
-		LDAProbs probs = loadLDAProbs(estConf, infConf);
+		LDAProbs probs = loadLDAProbsCollapsed(estConf);
+
+		SerializableWrapper sw = new SerializableWrapper(probs);
+		sw.save(MODEL_PROBS_100_SAVE_PATH);
+
+		probs = SerializableWrapper.readObject(MODEL_PROBS_100_SAVE_PATH);
+
+		// for (String doc : probs.getDocList()) {
+		// System.out.println(doc + ": " + probs.getMostLikelyTopic(doc));
+		// }
 
 		// LDAConfig config = ConfigFactory.loadConfiguration(LDAConfig.class,
 		// "./conf/lda-baseModel.conf");
@@ -231,9 +293,5 @@ public class LDAProbsLoader {
 		// System.out.println("Value: " + e.getValue());
 		// break;
 		// }
-
-		for (String doc : probs.getDocList()) {
-			System.out.println(doc + ": " + probs.getMostLikelyTopic(doc));
-		}
 	}
 }

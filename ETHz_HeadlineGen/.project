@@ -26,44 +26,9 @@
 			<locationURI>PARENT-3-PROJECT_LOC/Code%20Library/nlp_dataFIles/all_raw_counts</locationURI>
 		</link>
 		<link>
-			<name>data/docmap.txt</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/Code%20Library/nlp_dataFIles/docmap.txt</locationURI>
-		</link>
-		<link>
-			<name>data/full-100-model-final.others</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/Code%20Library/nlp_dataFIles/full-100-model-final.others</locationURI>
-		</link>
-		<link>
-			<name>data/full-100-model-final.phi</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/Code%20Library/nlp_dataFIles/full-100-model-final.phi</locationURI>
-		</link>
-		<link>
-			<name>data/full-100-model-final.tassign</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/Code%20Library/nlp_dataFIles/full-100-model-final.tassign</locationURI>
-		</link>
-		<link>
-			<name>data/full-100-model-final.theta</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/Code%20Library/nlp_dataFIles/full-100-model-final.theta</locationURI>
-		</link>
-		<link>
-			<name>data/full-100-model-final.twords</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/Code%20Library/nlp_dataFIles/full-100-model-final.twords</locationURI>
-		</link>
-		<link>
 			<name>data/raw</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>data/wordmap.txt</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/Code%20Library/nlp_dataFIles/wordmap.txt</locationURI>
 		</link>
 		<link>
 			<name>data/raw/ap.txt0</name>
