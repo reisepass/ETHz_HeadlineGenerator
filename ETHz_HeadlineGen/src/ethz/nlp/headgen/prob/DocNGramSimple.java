@@ -1,5 +1,6 @@
 package ethz.nlp.headgen.prob;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -10,6 +11,7 @@ import com.googlecode.concurrenttrees.common.KeyValuePair;
 import ethz.nlp.headgen.data.WordCount;
 import ethz.nlp.headgen.data.WordCountTree;
 
+@SuppressWarnings("serial")
 public class DocNGramSimple implements DocNGramProbs {
 	public static final int DEFAULT_NGRAMS_LENGTH = 2;
 
@@ -26,13 +28,7 @@ public class DocNGramSimple implements DocNGramProbs {
 	@Override
 	public TreeMap<ArrayList<String>, Double> getProbs(String docText) {
 		TreeMap<ArrayList<String>, Double> ngrams = new TreeMap<ArrayList<String>, Double>(
-				new Comparator<ArrayList<String>>() {
-					@Override
-					public int compare(ArrayList<String> o1,
-							ArrayList<String> o2) {
-						return o1.toString().compareTo(o2.toString());
-					}
-				});
+				new SimpleComparator());
 
 		// Add the cleaned ngrams to the ngram tree
 		String[] words = docText.split(" ");
@@ -51,11 +47,11 @@ public class DocNGramSimple implements DocNGramProbs {
 		return ngrams;
 	}
 
-	private WordCountTree getCounts(String[] words) {	
+	private WordCountTree getCounts(String[] words) {
 		WordCountTree tree = new WordCountTree();
-		if(words==null||words.length<n)
-			return tree; 
-		
+		if (words == null || words.length < n)
+			return tree;
+
 		String[] ngramWords = new String[n];
 
 		for (int i = 0; i < n; i++) {
@@ -84,4 +80,11 @@ public class DocNGramSimple implements DocNGramProbs {
 		return sb.toString();
 	}
 
+	public static class SimpleComparator implements
+			Comparator<ArrayList<String>>, Serializable {
+		@Override
+		public int compare(ArrayList<String> o1, ArrayList<String> o2) {
+			return o1.toString().compareTo(o2.toString());
+		}
+	}
 }

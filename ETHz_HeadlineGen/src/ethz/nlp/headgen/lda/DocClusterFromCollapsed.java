@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
+import ethz.nlp.headgen.io.SerializableWrapper;
 import ethz.nlp.headgen.prob.DocNGramSimple;
 import ethz.nlp.headgen.prob.RawToNGram;
 
@@ -15,7 +16,10 @@ import ethz.nlp.headgen.prob.RawToNGram;
 public class DocClusterFromCollapsed implements DocCluster {
 	private TreeMap<ArrayList<String>, Double>[] clusterNgrams;
 
-	private DocClusterFromCollapsed(
+	public DocClusterFromCollapsed() {
+	}
+
+	public DocClusterFromCollapsed(
 			TreeMap<ArrayList<String>, Double>[] clusterNgrams) {
 		this.clusterNgrams = clusterNgrams;
 	}
@@ -149,12 +153,19 @@ public class DocClusterFromCollapsed implements DocCluster {
 	}
 
 	public static void main(String[] args) throws IOException {
-		String theta = "data/lda/full-100-model-final.theta";
-		String collapsed = "data/all_raw";
-		DocCluster cluster = loadDocCluster(collapsed, theta);
-		System.out.println("Key: "
-				+ cluster.getClusterNgramProbs(0).firstEntry().getKey());
-		System.out.println("Value: "
-				+ cluster.getClusterNgramProbs(0).firstEntry().getValue());
+//		String theta = "data/lda/full-100-model-final.theta";
+//		String collapsed = "data/all_raw";
+//		DocCluster cluster = loadDocCluster(collapsed, theta);
+//		System.out.println("Key: "
+//				+ cluster.getClusterNgramProbs(0).firstEntry().getKey());
+//		System.out.println("Value: "
+//				+ cluster.getClusterNgramProbs(0).firstEntry().getValue());
+//		SerializableWrapper sw = new SerializableWrapper(cluster);
+//		sw.save("data/model-100-cluster");
+//		DocCluster cluster = SerializableWrapper.readObject("data/model-100-cluster");
+//		System.out.println("Key: "
+//				+ cluster.getClusterNgramProbs(0).firstEntry().getKey());
+//		System.out.println("Value: "
+//				+ cluster.getClusterNgramProbs(0).firstEntry().getValue());
 	}
 }
