@@ -30,7 +30,6 @@ import ethz.nlp.headgen.rouge.RougeScript;
 import ethz.nlp.headgen.sum.FeatureBasedSummary;
 import ethz.nlp.headgen.sum.FirstBaseline;
 import ethz.nlp.headgen.sum.FirstSentSum;
-import ethz.nlp.headgen.sum.MostProbSentSimpleGreedy;
 import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.sum.features.Feature;
 import ethz.nlp.headgen.sum.features.LDAFeature;
@@ -132,38 +131,45 @@ public class main {
 		System.err.println("Loading documents");
 		m.loadFiles();
 
+		// for (Doc d : m.documents) {
+		// for (CoreLabel token : d.getAno().get(TokensAnnotation.class)) {
+		// System.out.println("Token (NE): "
+		// + token.get(TextAnnotation.class) + " ("
+		// + token.get(NamedEntityTagAnnotation.class) + ")");
+		// }
+		// }
+
 		// Load topic models
 		System.err.println("Loading topic models");
-		LDAProbs baseModel = LDAProbsLoader.loadLDAProbs(estConf);
 		LDAProbs inferredModel = LDAProbsLoader.loadLDAProbs(estConf, infConf);
+
+		// Loading clusters
+		System.err.println("Loading doc clusters");
+		DocCluster trainCluster = SerializableWrapper
+				.readObject(DocCluster.CLUSTER_100_PATH);
 
 		// Assign docs to clusters
 		System.err.println("Assigning docs to clusters");
-		DocCluster trainCluster = new DocCluster(baseModel);
-		List<Integer> clusterAssign = m.assignDocClusters(inferredModel); // this
-																			// took
-																			// about
-																			// 5
-																			// min
+		List<Integer> clusterAssign = m.assignDocClusters(inferredModel);
 
 		// Get a list of ngram probabilities for each document
-		// System.err.println("Getting doc ngram probabilities");
-		// List<NGramProbs[]> probs = m.genDocNGramProbs(clusterAssign,
-		// trainCluster);
+		System.err.println("Getting doc ngram probabilities");
+		List<NGramProbs[]> probs = m.genDocNGramProbs(clusterAssign,
+				trainCluster);
 
 		System.err.println("Generating list of summarizers");
+		List<Summerizer[]> summarizers = m.generateSummarizerList(m.documents,
+				probs, inferredModel);
 		// List<Summerizer[]> summarizers =
 		// m.generateSummarizerList(m.documents,
-		// probs, inferredModel);
-		List<Summerizer[]> summarizers = m.generateSummarizerList(m.documents,
-				null, inferredModel);
+		// null, inferredModel);
 
 		for (Summerizer[] s : summarizers) {
 			System.err.println("Generating summaries for " + s.getClass());
 			// Generate summaries
 			for (int i = 0; i < s.length; i++) {
 				m.generateSummary(m.documents.get(i), s[i]);
-				// System.out.println(m.documents.get(i).summary);
+				System.out.println(m.documents.get(i).summary);
 			}
 
 			// Write the summaries to disk
@@ -246,24 +252,14 @@ public class main {
 		 * DEFAULT_MAX_SUMMARY_LENGTH); } summarizers.add(s);
 		 */
 
-		s = new Summerizer[docs.size()];
-		for (int i = 0; i < s.length; i++) {
-			s[i] = new MostProbSentSimpleGreedy(docs.get(i),
-					DEFAULT_MAX_SUMMARY_LENGTH, probs.get(0)[i]); // TODO I
-																	// think
-																	// this
-																	// array has
-																	// the topic
-																	// ngrams
-																	// for each
-																	// documents
-																	// infered
-																	// topic. In
-																	// the same
-																	// order as
-																	// the doc
-		} // Doc doc, int summaryLength, NGramProbs corpusNgramsAndProbs
-		summarizers.add(s);
+		// s = new Summerizer[docs.size()];
+		// // TODO I think this array has the topic ngrams for each documents
+		// // infered topic. In the same order as the doc
+		// for (int i = 0; i < s.length; i++) {
+		// s[i] = new MostProbSentSimpleGreedy(docs.get(i),
+		// DEFAULT_MAX_SUMMARY_LENGTH, probs.get(0)[i]);
+		// } // Doc doc, int summaryLength, NGramProbs corpusNgramsAndProbs
+		// summarizers.add(s);
 
 		s = new Summerizer[docs.size()];
 		CorpusCounts counts;
@@ -276,7 +272,7 @@ public class main {
 			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
 			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
 			s[i] = new FeatureBasedSummary(docs.get(i),
-					DEFAULT_MAX_SUMMARY_LENGTH, tf_idf, lda);
+					DEFAULT_MAX_SUMMARY_LENGTH, probs, tf_idf, lda);
 		}
 		summarizers.add(s);
 
