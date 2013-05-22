@@ -1,8 +1,13 @@
 package ethz.nlp.headgen.sum;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
@@ -13,11 +18,14 @@ import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.util.CoreMap;
+import ethz.nlp.headgen.Constants;
 import ethz.nlp.headgen.Doc;
 import ethz.nlp.headgen.prob.NGramProbs;
+import ethz.nlp.headgen.prob.NoFilterAddTestCorpus;
 import ethz.nlp.headgen.sum.features.Feature;
 
-public class FeatureBasedSummary implements Summerizer {
+public class FeatureBasedSummary extends ArticleTopicNGramSum implements
+		Summerizer {
 	public static final int NUM_TOP_WORDS = 20;
 	public static final String[] VERB_POS = { "VB", "VBD", "VBG", "VBN", "VBP",
 			"VBZ" };
@@ -27,10 +35,11 @@ public class FeatureBasedSummary implements Summerizer {
 	protected Doc doc;
 	protected Feature[] features;
 	protected int length;
-	protected List<NGramProbs[]> probs;
+	protected NGramProbs probs;
 
-	public FeatureBasedSummary(Doc doc, int length, List<NGramProbs[]> probs,
+	public FeatureBasedSummary(Doc doc, int length, NGramProbs probs,
 			Feature... features) {
+		super(doc, length);
 		this.probs = probs;
 		this.doc = doc;
 		this.features = features;
@@ -39,20 +48,23 @@ public class FeatureBasedSummary implements Summerizer {
 
 	@Override
 	public String summary() {
-		SortedSet<WordEntry> topWords = getTopWords();
+		SortedSet<WordEntry> topWords = getScoredWords();
 		String topVerb = getTopVerb(topWords);
 		SortedSet<EntityEntry>[] topEntities = getTopEntities();
 		// StringBuilder sb = new StringBuilder();
-		return genHeadline(topWords, topEntities, topVerb);
+		// for (WordEntry word : topWords) {
+		// sb.append(word.getWord() + " ");
+		// }
 		// return sb.toString();
+		return genHeadline(topWords, topEntities, topVerb);
 	}
 
-	private String getTopVerb(SortedSet<WordEntry> topWords) {
+	protected String getTopVerb(SortedSet<WordEntry> topWords) {
 		String topVerb = null;
 		for (WordEntry w : topWords) {
-			if (topVerb == null
-					&& isVerb(w.token.get(PartOfSpeechAnnotation.class))) {
+			if (isVerb(w.token.get(PartOfSpeechAnnotation.class))) {
 				topVerb = w.getWord();
+				break;
 			}
 		}
 		return topVerb;
@@ -60,7 +72,7 @@ public class FeatureBasedSummary implements Summerizer {
 
 	/*
 	 * Strategy: 1) Find the top subject NE, top verb and top object NE 2)
-	 * Construct: SubNE + verb + ObjNE
+	 * Construct: SubNE + verb + NGram-Chain + ObjNE
 	 * 
 	 * Filter the clustered ngram probs based on the top words list and generate
 	 * a sentence from bigrams until the length cutoff has been reached
@@ -69,13 +81,76 @@ public class FeatureBasedSummary implements Summerizer {
 			SortedSet<EntityEntry>[] topEntities, String topVerb) {
 		String subjectEntity = topEntities[0].first().entity;
 		String objectEntity = null;
+
 		for (EntityEntry entry : topEntities[1]) {
 			if (!subjectEntity.equals(entry.entity)) {
 				objectEntity = entry.entity;
 				break;
 			}
 		}
-		return subjectEntity + " " + topVerb + " " + objectEntity;
+
+		TreeMap<ArrayList<String>, Double> corpTree = probs.filterNgrams(doc);
+		NGramProbs concat = new NoFilterAddTestCorpus(corpTree, 1.5);
+		TreeMap<ArrayList<String>, Double> corpDocngrams = concat
+				.filterNgrams(doc);
+		Comparator<ArrayList<String>> localCompareObj = Constants.CompareObj;
+
+		StringBuilder strBld = new StringBuilder();
+		String out = "#####################22###############";
+
+		List<Map.Entry<ArrayList<String>, Double>> sorted = new LinkedList<Map.Entry<ArrayList<String>, Double>>(
+				corpDocngrams.entrySet());
+		Collections.sort(sorted, new Comparator() {
+			public int compare(Object o1, Object o2) {
+				return ((Comparable) ((Map.Entry) (o1)).getValue())
+						.compareTo(((Map.Entry) (o2)).getValue());
+			}
+		});
+		Collections.reverse(sorted);
+		ArrayList<String> first = new ArrayList<String>();
+		first.add(subjectEntity);
+		first.add(topVerb);
+
+		boolean objectFound = false;
+		int ngramLength = first.size();
+		strBld.append(printArray(first));
+
+		String[] wordsSoFar = strBld.toString().split(" ");
+		String justAdded = wordsSoFar[wordsSoFar.length - 1];
+		while (strBld.length() < sumLeng) {
+			for (Map.Entry<ArrayList<String>, Double> elem : sorted) {
+				if (elem.getKey().size() > 1) {
+					if (localCompareObj.compare(elem.getKey(),
+							wildWithInpAtFront(justAdded, ngramLength)) == 0) {
+						elem.getKey().remove(0);
+						strBld.append(printArray(elem.getKey()));
+						wordsSoFar = strBld.toString().split(" ");
+						justAdded = wordsSoFar[wordsSoFar.length - 1];
+						if (justAdded.equals(objectEntity)) {
+							objectFound = true;
+						}
+					}
+				}
+			}
+			strBld.append(" ");
+			// Remove words that done fit and we are done
+			if (strBld.length() > sumLeng) {
+				out = strBld.toString();
+				out = out.substring(0, sumLeng - 1);
+				out = out.substring(0, out.lastIndexOf(" "));
+
+				if (!objectFound) {
+					while (out.length() + objectEntity.length() > sumLeng) {
+						out = out.substring(0, out.lastIndexOf(" "));
+					}
+					out += " " + objectEntity;
+				}
+				break;
+			}
+
+		}
+
+		return out;
 	}
 
 	// Returns an array of size two that returns a sorted list of the most
@@ -181,16 +256,16 @@ public class FeatureBasedSummary implements Summerizer {
 		return true;
 	}
 
-	protected boolean isVerb(String pos) {
+	protected boolean isVerb(Object object) {
 		for (String verb : VERB_POS) {
-			if (verb.equals(pos)) {
+			if (verb.equals(object)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	protected SortedSet<WordEntry> getTopWords() {
+	protected SortedSet<WordEntry> getScoredWords() {
 		SortedSet<WordEntry> topWords = new TreeSet<WordEntry>();
 		Annotation a = doc.getAno();
 		WordEntry entry;
@@ -204,30 +279,30 @@ public class FeatureBasedSummary implements Summerizer {
 
 			entry.score = scoreWord(entry.token);
 			topWords.add(entry);
-			if (topWords.size() < NUM_TOP_WORDS) {
-				topWords.add(entry);
-			} else {
-				// Replace the last word if it has a lower score or if the
-				// current word is a verb and the lowest scoring word isn't
-
-				// If the current word is a verb, add it to the set if it's
-				// score is higher than the last entry's or if the last entry
-				// isn't a verb. Otherwise replace the last word if the score is
-				// higher and it's not a verb
-				if (isVerb(token.get(PartOfSpeechAnnotation.class))) {
-					if (entry.score > topWords.last().score
-							|| !isVerb(topWords.last().token
-									.get(PartOfSpeechAnnotation.class))) {
-						topWords.remove(topWords.last());
-						topWords.add(entry);
-					}
-				} else if (entry.score > topWords.last().score
-						&& !isVerb(topWords.last().token
-								.get(PartOfSpeechAnnotation.class))) {
-					topWords.remove(topWords.last());
-					topWords.add(entry);
-				}
-			}
+			// if (topWords.size() < NUM_TOP_WORDS) {
+			// topWords.add(entry);
+			// } else {
+			// // Replace the last word if it has a lower score or if the
+			// // current word is a verb and the lowest scoring word isn't
+			//
+			// // If the current word is a verb, add it to the set if it's
+			// // score is higher than the last entry's or if the last entry
+			// // isn't a verb. Otherwise replace the last word if the score is
+			// // higher and it's not a verb
+			// if (isVerb(token.get(PartOfSpeechAnnotation.class))) {
+			// if (entry.score > topWords.last().score
+			// || !isVerb(topWords.last().token
+			// .get(PartOfSpeechAnnotation.class))) {
+			// topWords.remove(topWords.last());
+			// topWords.add(entry);
+			// }
+			// } else if (entry.score > topWords.last().score
+			// && !isVerb(topWords.last().token
+			// .get(PartOfSpeechAnnotation.class))) {
+			// topWords.remove(topWords.last());
+			// topWords.add(entry);
+			// }
+			// }
 		}
 
 		return topWords;
@@ -246,7 +321,7 @@ public class FeatureBasedSummary implements Summerizer {
 		doc = inD;
 	}
 
-	private static class WordEntry implements Comparable<WordEntry> {
+	static class WordEntry implements Comparable<WordEntry> {
 		CoreLabel token;
 		double score = -1;
 
@@ -264,7 +339,11 @@ public class FeatureBasedSummary implements Summerizer {
 
 		@Override
 		public int compareTo(WordEntry arg0) {
-			return Double.compare(score, arg0.score);
+			int result = Double.compare(score, arg0.score);
+//			if (result == 0) {
+//				result = getWord().compareTo(arg0.getWord());
+//			}
+			return result;
 		}
 
 		public String getWord() {
@@ -272,7 +351,7 @@ public class FeatureBasedSummary implements Summerizer {
 		}
 	}
 
-	private static class EntityEntry implements Comparable<EntityEntry> {
+	static class EntityEntry implements Comparable<EntityEntry> {
 		String entity;
 		int occurences = 1;
 

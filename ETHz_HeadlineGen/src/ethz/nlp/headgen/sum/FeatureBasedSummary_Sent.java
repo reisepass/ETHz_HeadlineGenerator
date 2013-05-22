@@ -16,8 +16,8 @@ import ethz.nlp.headgen.sum.features.Feature;
 public class FeatureBasedSummary_Sent extends FeatureBasedSummary implements
 		Summerizer {
 
-	public FeatureBasedSummary_Sent(Doc doc, int length,
-			List<NGramProbs[]> probs, Feature... features) {
+	public FeatureBasedSummary_Sent(Doc doc, int length, NGramProbs probs,
+			Feature... features) {
 		super(doc, length, probs, features);
 	}
 

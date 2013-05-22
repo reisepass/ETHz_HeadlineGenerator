@@ -28,4 +28,6 @@ public interface NGramProbs {
 	 * @return
 	 */
 	public double getProb(List<String> words);
+	
+	public TreeMap<ArrayList<String>, Double> getTreeMap();
 }

@@ -10,7 +10,6 @@ import java.util.TreeMap;
 
 import ethz.nlp.headgen.Constants;
 import ethz.nlp.headgen.Doc;
-import ethz.nlp.headgen.prob.CorpPlusQueryDocNgrams;
 import ethz.nlp.headgen.prob.NGramProbs;
 import ethz.nlp.headgen.prob.NoFilterAddTestCorpus;
 

@@ -10,8 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.stanford.nlp.trees.Tree;
+import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation;
+import edu.stanford.nlp.util.CoreMap;
 import ethz.nlp.headgen.data.CorpusCounts;
 import ethz.nlp.headgen.io.IOConfig;
 import ethz.nlp.headgen.io.ParsedDocReader;
@@ -28,6 +32,7 @@ import ethz.nlp.headgen.rouge.RougeEvalBuilder;
 import ethz.nlp.headgen.rouge.RougeResults;
 import ethz.nlp.headgen.rouge.RougeScript;
 import ethz.nlp.headgen.sum.FeatureBasedSummary;
+import ethz.nlp.headgen.sum.FeatureBasedSummary_BagOfWords;
 import ethz.nlp.headgen.sum.FirstBaseline;
 import ethz.nlp.headgen.sum.FirstSentSum;
 import ethz.nlp.headgen.sum.Summerizer;
@@ -39,7 +44,7 @@ import ethz.nlp.headgen.xml.XMLDoc;
 
 public class main {
 	public static final annotateThisDoc initATD = new annotateThisDoc();
-	public static final int DEFAULT_MAX_SUMMARY_LENGTH = 75;
+	public static final int DEFAULT_MAX_SUMMARY_LENGTH = 100;
 
 	private Config conf;
 	private IOConfig ioConf;
@@ -131,6 +136,12 @@ public class main {
 		System.err.println("Loading documents");
 		m.loadFiles();
 
+		// for (CoreMap sentence : m.documents.get(1).getAno()
+		// .get(SentencesAnnotation.class)) {
+		// Tree tree = sentence.get(TreeAnnotation.class);
+		// tree.pennPrint();
+		// }
+
 		// for (Doc d : m.documents) {
 		// for (CoreLabel token : d.getAno().get(TokensAnnotation.class)) {
 		// System.out.println("Token (NE): "
@@ -154,15 +165,14 @@ public class main {
 
 		// Get a list of ngram probabilities for each document
 		System.err.println("Getting doc ngram probabilities");
-		List<NGramProbs[]> probs = m.genDocNGramProbs(clusterAssign,
-				trainCluster);
+		NGramProbs[] probs = m.genDocNGramProbs(clusterAssign, trainCluster);
 
 		System.err.println("Generating list of summarizers");
 		List<Summerizer[]> summarizers = m.generateSummarizerList(m.documents,
 				probs, inferredModel);
-		// List<Summerizer[]> summarizers =
-		// m.generateSummarizerList(m.documents,
-		// null, inferredModel);
+//		 List<Summerizer[]> summarizers =
+//		 m.generateSummarizerList(m.documents,
+//		 null, inferredModel);
 
 		for (Summerizer[] s : summarizers) {
 			System.err.println("Generating summaries for " + s.getClass());
@@ -201,21 +211,21 @@ public class main {
 
 	// NGramProbs: NoFilterAddTestCorpus, NgramLightFilter,
 	// CorpPlusQueryDocNgrams
-	private List<NGramProbs[]> genDocNGramProbs(List<Integer> clusterAssign,
+	private NGramProbs[] genDocNGramProbs(List<Integer> clusterAssign,
 			DocCluster trainCluster) throws IOException {
-		List<NGramProbs[]> probsList = new ArrayList<NGramProbs[]>();
 
 		NGramProbs[] probs = new NGramProbs[clusterAssign.size()];
 		for (int i = 0; i < clusterAssign.size(); i++) {
 			probs[i] = new NoFilterAddTestCorpus(
 					trainCluster.getClusterNgramProbs(clusterAssign.get(i)));
+//			probs[i] = new NoFilterAddTestCorpus(
+//					probs[i].filterNgrams(documents.get(i)));
 		}
-		probsList.add(probs);
-		return probsList;
+		return probs;
 	}
 
 	private List<Summerizer[]> generateSummarizerList(List<Doc> docs,
-			List<NGramProbs[]> probs, LDAProbs inferredProbs) {
+			NGramProbs[] probs, LDAProbs inferredProbs) {
 		List<Summerizer[]> summarizers = new ArrayList<Summerizer[]>();
 
 		Summerizer[] s = new Summerizer[docs.size()];
@@ -261,18 +271,28 @@ public class main {
 		// } // Doc doc, int summaryLength, NGramProbs corpusNgramsAndProbs
 		// summarizers.add(s);
 
-		s = new Summerizer[docs.size()];
 		CorpusCounts counts;
 		try {
 			counts = SerializableWrapper.readObject(CorpusCounts.SAVE_PATH);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+		
+		s = new Summerizer[docs.size()];
 		for (int i = 0; i < s.length; i++) {
 			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
 			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
 			s[i] = new FeatureBasedSummary(docs.get(i),
-					DEFAULT_MAX_SUMMARY_LENGTH, probs, tf_idf, lda);
+					DEFAULT_MAX_SUMMARY_LENGTH, probs[i], tf_idf, lda);
+		}
+		summarizers.add(s);
+
+		s = new Summerizer[docs.size()];		
+		for (int i = 0; i < s.length; i++) {
+			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
+			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
+			s[i] = new FeatureBasedSummary_BagOfWords(docs.get(i),
+					DEFAULT_MAX_SUMMARY_LENGTH, probs[i], tf_idf, lda);
 		}
 		summarizers.add(s);
 

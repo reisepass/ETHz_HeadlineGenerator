@@ -23,7 +23,7 @@ public class NgramSimple implements NGramProbs {
 
 	public NgramSimple(TreeMap<ArrayList<String>, Double> inNgrams) {
 		ngramFreq = inNgrams;
-		if(inNgrams.firstEntry()!=null)
+		if (inNgrams.firstEntry() != null)
 			n = inNgrams.firstEntry().getKey().size();
 	}
 
@@ -102,4 +102,8 @@ public class NgramSimple implements NGramProbs {
 		}
 	}
 
+	@Override
+	public TreeMap<ArrayList<String>, Double> getTreeMap() {
+		return ngramFreq;
+	}
 }
