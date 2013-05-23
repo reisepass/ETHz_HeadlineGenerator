@@ -10,12 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.trees.Tree;
-import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation;
-import edu.stanford.nlp.util.CoreMap;
 import ethz.nlp.headgen.data.CorpusCounts;
 import ethz.nlp.headgen.io.IOConfig;
 import ethz.nlp.headgen.io.ParsedDocReader;
@@ -170,20 +166,39 @@ public class main {
 		System.err.println("Generating list of summarizers");
 		List<Summerizer[]> summarizers = m.generateSummarizerList(m.documents,
 				probs, inferredModel);
-//		 List<Summerizer[]> summarizers =
-//		 m.generateSummarizerList(m.documents,
-//		 null, inferredModel);
+		// List<Summerizer[]> summarizers =
+		// m.generateSummarizerList(m.documents,
+		// null, inferredModel);
 
-		for (Summerizer[] s : summarizers) {
-			System.err.println("Generating summaries for " + s.getClass());
-			// Generate summaries
-			for (int i = 0; i < s.length; i++) {
-				m.generateSummary(m.documents.get(i), s[i]);
-				System.out.println(m.documents.get(i).summary);
+		Doc[][] summaries = new Doc[summarizers.size()][m.documents.size()];
+		for (int i = 0; i < m.documents.size(); i++) {
+			for (int j = 0; j < summarizers.size(); j++) {
+				try {
+					System.out.println("Generating summary (" + j + ", " + i
+							+ ")");
+
+					m.generateSummary(m.documents.get(i), summarizers.get(j)[i]);
+					// System.out.println(m.documents.get(i).summary);
+
+					summaries[j][i] = new Doc();
+					summaries[j][i].f = m.documents.get(i).f;
+					summaries[j][i].summary = m.documents.get(i).summary;
+				} catch (Exception e) {
+					e.printStackTrace();
+					summaries[j][i] = new Doc();
+					summaries[j][i].f = m.documents.get(i).f;
+					summaries[j][i].summary = "NO_SUM";
+					continue;
+				}
 			}
+			m.documents.get(i).setAno(null);
+		}
 
+		System.out.println("Start calcuating ROUGE");
+		int count = 0;
+		for (Doc[] docSums : summaries) {
 			// Write the summaries to disk
-			m.writeSummaries();
+			m.writeSummaries(docSums);
 
 			// Generate the ROUGE evaluation file
 			String rougeInFile = "ROUGE-IN.xml";
@@ -195,10 +210,38 @@ public class main {
 			RougeScript rs = new RougeScript(conf.getRougePath(), 95, 500, 2,
 					1.2);
 			RougeResults results = rs.run(rougeInFile);
-			System.out.println(s[0].getClass());
+			System.out.println(summarizers.get(count++)[0].getClass());
 			System.out.println(results.getNgramAvgF(1));
-
 		}
+
+		// for (Summerizer[] s : summarizers) {
+		// System.err.println("Generating summaries for " + s.getClass());
+		// // Generate summaries
+		// for (int i = 0; i < s.length; i++) {
+		// m.generateSummary(m.documents.get(i), s[i]);
+		// System.out.println(m.documents.get(i).summary);
+		//
+		// // Reset annotation to null so that we don't run out of memory
+		// m.documents.get(i).setAno(null);
+		// }
+		//
+		// // Write the summaries to disk
+		// m.writeSummaries();
+		//
+		// // Generate the ROUGE evaluation file
+		// String rougeInFile = "ROUGE-IN.xml";
+		// RougeEvalBuilder reb = m.genRouge();
+		// reb.write(rougeInFile);
+		//
+		// // Run the ROUGE script on the generated summaries and print the
+		// // results
+		// RougeScript rs = new RougeScript(conf.getRougePath(), 95, 500, 2,
+		// 1.2);
+		// RougeResults results = rs.run(rougeInFile);
+		// System.out.println(s[0].getClass());
+		// System.out.println(results.getNgramAvgF(1));
+		//
+		// }
 	}
 
 	private List<Integer> assignDocClusters(LDAProbs probs) throws IOException {
@@ -218,8 +261,8 @@ public class main {
 		for (int i = 0; i < clusterAssign.size(); i++) {
 			probs[i] = new NoFilterAddTestCorpus(
 					trainCluster.getClusterNgramProbs(clusterAssign.get(i)));
-//			probs[i] = new NoFilterAddTestCorpus(
-//					probs[i].filterNgrams(documents.get(i)));
+			// probs[i] = new NoFilterAddTestCorpus(
+			// probs[i].filterNgrams(documents.get(i)));
 		}
 		return probs;
 	}
@@ -277,7 +320,7 @@ public class main {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		
+
 		s = new Summerizer[docs.size()];
 		for (int i = 0; i < s.length; i++) {
 			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
@@ -287,7 +330,7 @@ public class main {
 		}
 		summarizers.add(s);
 
-		s = new Summerizer[docs.size()];		
+		s = new Summerizer[docs.size()];
 		for (int i = 0; i < s.length; i++) {
 			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
 			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
@@ -342,6 +385,33 @@ public class main {
 		}
 	}
 
+	private void writeSummaries(Doc[] documents) throws IOException {
+		File outputDir = new File(ioConf.getOutputDir());
+		if (!outputDir.exists()) {
+			if (outputDir.mkdirs()) {
+				throw new IOException("Unable to create the output directory: "
+						+ outputDir.getAbsolutePath());
+			}
+		}
+
+		FileWriter fw = null;
+		String fileName;
+		for (Doc d : documents) {
+			fileName = d.f.getName();
+
+			try {
+				fw = new FileWriter(new File(outputDir, fileName));
+				fw.write(d.summary);
+			} finally {
+				if (fw != null) {
+					fw.close();
+				}
+			}
+
+		}
+
+	}
+
 	private void loadFiles() throws IOException {
 		File rawDir = new File(ioConf.getRawDir());
 
@@ -351,13 +421,21 @@ public class main {
 		}
 
 		Doc doc;
+		File parentDir;
+		File anotFile;
 		for (File d : rawDir.listFiles()) {
 			if (d.isDirectory()) {
 				for (File f : d.listFiles()) {
 					doc = XMLDoc.readXML(f);
+
+					parentDir = new File(ioConf.getParsedDir(),
+							doc.getParentDirName());
+					anotFile = new File(parentDir, doc.getAnotFileName());
+					doc.anotFile = anotFile;
+
 					documents.add(doc);
 
-					addAnnotation(doc);
+					// addAnnotation(doc);
 				}
 			}
 		}
@@ -388,10 +466,17 @@ public class main {
 		File parentDir = new File(ioConf.getParsedDir(), doc.getParentDirName());
 		File anotFile = new File(parentDir, doc.getAnotFileName());
 		if (!anotFile.exists()) {
+			System.err.println("Generating annotation for " + doc.f.getName());
 			genAnnotation(doc);
 			saveAnnotation(doc, anotFile);
 		} else {
-			doc.setAno(ParsedDocReader.read(anotFile));
+			try {
+				doc.setAno(ParsedDocReader.read(anotFile));
+			} catch (IOException e) {
+				System.err.println("Generating annotation for "
+						+ doc.f.getName());
+				genAnnotation(doc);
+			}
 		}
 	}
 
@@ -406,7 +491,11 @@ public class main {
 			}
 		}
 
-		ParsedDocWriter.writeOutput(doc.getAno(), outFile);
+		try {
+			ParsedDocWriter.writeOutput(doc.getAno(), outFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void genAnnotation(Doc doc) {

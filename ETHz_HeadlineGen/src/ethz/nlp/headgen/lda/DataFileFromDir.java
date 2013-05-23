@@ -78,7 +78,7 @@ public class DataFileFromDir {
 
 	public static void main(String[] args) throws IOException {
 		File rawDir = new File("data/raw");
-		File out = new File("data/lda/test/newdocs.dat");
+		File out = new File("data/lda/test/newdocs-full.dat");
 		DataFileFromDir df = new DataFileFromDir(rawDir);
 		df.createDataFile(out);
 	}

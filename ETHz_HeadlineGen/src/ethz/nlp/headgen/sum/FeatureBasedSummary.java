@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -79,13 +80,26 @@ public class FeatureBasedSummary extends ArticleTopicNGramSum implements
 	 */
 	private String genHeadline(SortedSet<WordEntry> topWords,
 			SortedSet<EntityEntry>[] topEntities, String topVerb) {
-		String subjectEntity = topEntities[0].first().entity;
+		String subjectEntity = null;
+		if (topEntities[0] == null) {
+			// TODO: Get next best subject
+		} else {
+			try {
+				subjectEntity = topEntities[0].first().entity;
+			} catch(NoSuchElementException e) {
+				//TODO: Get next best subject
+			}
+		}
+		
 		String objectEntity = null;
-
-		for (EntityEntry entry : topEntities[1]) {
-			if (!subjectEntity.equals(entry.entity)) {
-				objectEntity = entry.entity;
-				break;
+		if (subjectEntity == null) {
+			objectEntity = null;
+		} else {
+			for (EntityEntry entry : topEntities[1]) {
+				if (!subjectEntity.equals(entry.entity)) {
+					objectEntity = entry.entity;
+					break;
+				}
 			}
 		}
 
@@ -340,9 +354,9 @@ public class FeatureBasedSummary extends ArticleTopicNGramSum implements
 		@Override
 		public int compareTo(WordEntry arg0) {
 			int result = Double.compare(score, arg0.score);
-//			if (result == 0) {
-//				result = getWord().compareTo(arg0.getWord());
-//			}
+			// if (result == 0) {
+			// result = getWord().compareTo(arg0.getWord());
+			// }
 			return result;
 		}
 

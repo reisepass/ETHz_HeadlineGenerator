@@ -153,15 +153,15 @@ public class DocClusterFromCollapsed implements DocCluster {
 	}
 
 	public static void main(String[] args) throws IOException {
-//		String theta = "data/lda/full-100-model-final.theta";
-//		String collapsed = "data/all_raw";
-//		DocCluster cluster = loadDocCluster(collapsed, theta);
-//		System.out.println("Key: "
-//				+ cluster.getClusterNgramProbs(0).firstEntry().getKey());
-//		System.out.println("Value: "
-//				+ cluster.getClusterNgramProbs(0).firstEntry().getValue());
-//		SerializableWrapper sw = new SerializableWrapper(cluster);
-//		sw.save("data/model-100-cluster");
+		String theta = "data/lda/full-200-model-final.theta";
+		String collapsed = "data/all_raw";
+		DocCluster cluster = loadDocCluster(collapsed, theta);
+		System.out.println("Key: "
+				+ cluster.getClusterNgramProbs(0).firstEntry().getKey());
+		System.out.println("Value: "
+				+ cluster.getClusterNgramProbs(0).firstEntry().getValue());
+		SerializableWrapper sw = new SerializableWrapper(cluster);
+		sw.save("data/model-200-cluster");
 //		DocCluster cluster = SerializableWrapper.readObject("data/model-100-cluster");
 //		System.out.println("Key: "
 //				+ cluster.getClusterNgramProbs(0).firstEntry().getKey());

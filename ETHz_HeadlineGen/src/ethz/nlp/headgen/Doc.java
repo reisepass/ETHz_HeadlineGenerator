@@ -18,16 +18,18 @@ import ethz.nlp.headgen.data.WordCountTree;
 import ethz.nlp.headgen.io.ParsedDocReader;
 import ethz.nlp.headgen.sum.Summerizer;
 
-public class Doc  {
+public class Doc {
 	public Doc() {
-		
+
 	}
-	public Doc( String cont) {
+
+	public Doc(String cont) {
 		super();
 
 		this.cont = cont;
 
 	}
+
 	public Doc(String docno, String docType, String textType, String cont,
 			File f) {
 		super();
@@ -48,6 +50,7 @@ public class Doc  {
 	public String summary;
 	public List<String> models;
 	public WordCountTree wordCounts;
+	public File anotFile = null;
 
 	@Override
 	public String toString() {
@@ -55,33 +58,39 @@ public class Doc  {
 				+ textType + "]";
 	}
 
-
-	public void setAno(Annotation in){
+	public void setAno(Annotation in) {
 		this.annotation = in;
 	}
 
-	
-	
-	public Annotation getAno(){
-		if( this.annotation==null){
-			this.annotation=main.initATD.anoThis(this.cont);
-			
+	public Annotation getAno() {
+
+		if (this.annotation == null) {
+			if (anotFile != null) {
+				try {
+					annotation = ParsedDocReader.read(anotFile);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} else {
+				this.annotation = main.initATD.anoThis(this.cont);
+			}
 		}
-		
-			return this.annotation;
+
+		return this.annotation;
 	}
-	public WordCountTree getWordCount(){
-		if(wordCounts==null){
+
+	public WordCountTree getWordCount() {
+		if (wordCounts == null) {
 			this.wordCounts = new WordCountTree();
 			List<CoreLabel> tokens = this.getAno().get(TokensAnnotation.class);
 			for (CoreLabel token : tokens) {
-				
+
 				this.wordCounts.put(token.get(TextAnnotation.class));
 			}
 		}
 		return wordCounts;
 	}
-	
+
 	public String getParentDirName() {
 		return f.getParentFile().getName();
 	}
@@ -89,53 +98,58 @@ public class Doc  {
 	public String getAnotFileName() {
 		return f.getName() + ".parsed";
 	}
-	
-	private void initPresentWords(){
-		String[] wordRay = cont.split(" "); 
-		for(String el : wordRay)
-			el=el.trim();	//TODO check if this actually changes the strings in wordRay 
-		presentWords = new HashSet<String>((Collection<String>)Arrays.asList(wordRay));
+
+	private void initPresentWords() {
+		String[] wordRay = cont.split(" ");
+		for (String el : wordRay)
+			el = el.trim(); // TODO check if this actually changes the strings
+							// in wordRay
+		presentWords = new HashSet<String>(
+				(Collection<String>) Arrays.asList(wordRay));
 	}
-	public boolean contains(String quer){
-		if(presentWords==null){
+
+	public boolean contains(String quer) {
+		if (presentWords == null) {
 			initPresentWords();
 		}
-		if(quer.indexOf(" ")!=-1){
-			String [] splitup = quer.split(" ");
-			int found =0;
-			for(String el : splitup){
-				if(this.contains(el.trim())){
+		if (quer.indexOf(" ") != -1) {
+			String[] splitup = quer.split(" ");
+			int found = 0;
+			for (String el : splitup) {
+				if (this.contains(el.trim())) {
 					found++;
 				}
 			}
-			return found==splitup.length;
+			return found == splitup.length;
 		}
-		
+
 		return presentWords.contains(quer);
 	}
-	public boolean containsAll(ArrayList<String> query){
-		if(presentWords==null)
+
+	public boolean containsAll(ArrayList<String> query) {
+		if (presentWords == null)
 			initPresentWords();
 		boolean allThere = true;
-		for(String el : query){
-			if(!this.contains(el)){
-				allThere=false;
+		for (String el : query) {
+			if (!this.contains(el)) {
+				allThere = false;
 				break;
 			}
 		}
 		return allThere;
 	}
-	public boolean containsOneOrMore(ArrayList<String> query){
-		if(presentWords==null)
+
+	public boolean containsOneOrMore(ArrayList<String> query) {
+		if (presentWords == null)
 			initPresentWords();
 
-		for(String el : query){
+		for (String el : query) {
 			String[] splitt = el.split(" ");
-			if(this.contains(el)){
+			if (this.contains(el)) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
+
 }
