@@ -27,10 +27,15 @@ import ethz.nlp.headgen.prob.NoFilterAddTestCorpus;
 import ethz.nlp.headgen.rouge.RougeEvalBuilder;
 import ethz.nlp.headgen.rouge.RougeResults;
 import ethz.nlp.headgen.rouge.RougeScript;
+import ethz.nlp.headgen.sum.ArticleTopicNGramSum;
 import ethz.nlp.headgen.sum.FeatureBasedSummary;
 import ethz.nlp.headgen.sum.FeatureBasedSummary_BagOfWords;
+import ethz.nlp.headgen.sum.FeatureBasedSummary_Sent;
 import ethz.nlp.headgen.sum.FirstBaseline;
-import ethz.nlp.headgen.sum.FirstSentSum;
+import ethz.nlp.headgen.sum.MostProbSentBasedOnTopicDocProb;
+import ethz.nlp.headgen.sum.MostProbSentSimpleGreedy;
+import ethz.nlp.headgen.sum.NeFreqBasedSum;
+import ethz.nlp.headgen.sum.SecondBaseline;
 import ethz.nlp.headgen.sum.Summerizer;
 import ethz.nlp.headgen.sum.features.Feature;
 import ethz.nlp.headgen.sum.features.LDAFeature;
@@ -153,7 +158,7 @@ public class main {
 		// Loading clusters
 		System.err.println("Loading doc clusters");
 		DocCluster trainCluster = SerializableWrapper
-				.readObject(DocCluster.CLUSTER_100_PATH);
+				.readObject(DocCluster.CLUSTER_200_PATH);
 
 		// Assign docs to clusters
 		System.err.println("Assigning docs to clusters");
@@ -196,23 +201,35 @@ public class main {
 
 		System.out.println("Start calcuating ROUGE");
 		int count = 0;
+
+		// Generate the ROUGE evaluation file
+		String rougeInFile = "ROUGE-IN.xml";
+		RougeEvalBuilder reb = m.genRouge();
+		reb.write(rougeInFile);
+		FileWriter fw = new FileWriter(new File("summariesCollapsed"));
+
 		for (Doc[] docSums : summaries) {
+			fw.write(summarizers.get(count)[0].getClass() + "\n");
+			for (Doc doc : docSums) {
+				fw.write(doc.summary.replaceAll("\n", " ") + "\n");
+			}
+
 			// Write the summaries to disk
 			m.writeSummaries(docSums);
-
-			// Generate the ROUGE evaluation file
-			String rougeInFile = "ROUGE-IN.xml";
-			RougeEvalBuilder reb = m.genRouge();
-			reb.write(rougeInFile);
 
 			// Run the ROUGE script on the generated summaries and print the
 			// results
 			RougeScript rs = new RougeScript(conf.getRougePath(), 95, 500, 2,
 					1.2);
-			RougeResults results = rs.run(rougeInFile);
-			System.out.println(summarizers.get(count++)[0].getClass());
-			System.out.println(results.getNgramAvgF(1));
+			System.out.println("Writing summaries to: results-"
+					+ summarizers.get(count)[0].getClass());
+			rs.run(rougeInFile,
+					"results-" + summarizers.get(count++)[0].getClass());
+			// RougeResults results = rs.run(rougeInFile);
+			// System.out.println(summarizers.get(count++)[0].getClass());
+			// System.out.println(results.getNgramAvgF(1));
 		}
+		fw.close();
 
 		// for (Summerizer[] s : summarizers) {
 		// System.err.println("Generating summaries for " + s.getClass());
@@ -270,49 +287,51 @@ public class main {
 	private List<Summerizer[]> generateSummarizerList(List<Doc> docs,
 			NGramProbs[] probs, LDAProbs inferredProbs) {
 		List<Summerizer[]> summarizers = new ArrayList<Summerizer[]>();
+		Summerizer[] s;
 
-		Summerizer[] s = new Summerizer[docs.size()];
+		// s = new Summerizer[docs.size()];
+		// for (int i = 0; i < s.length; i++) {
+		// s[i] = new FirstSentSum(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
+		// }
+		// summarizers.add(s);
+
+		s = new Summerizer[docs.size()];
 		for (int i = 0; i < s.length; i++) {
-			s[i] = new FirstSentSum(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
+			System.out.println("Generating FirstBaseline #" + (i+1));
+			s[i] = new FirstBaseline(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
 		}
 		summarizers.add(s);
 
 		s = new Summerizer[docs.size()];
 		for (int i = 0; i < s.length; i++) {
-			s[i] = new FirstBaseline(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
+			System.out.println("Generating SecondBaseline #" + (i+1));
+			s[i] = new SecondBaseline(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
 		}
 		summarizers.add(s);
 
-		// s = new Summerizer[docs.size()];
-		// for (int i = 0; i < s.length; i++) {
-		// s[i] = new SecondBaseline(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
-		// }
-		// summarizers.add(s);
+		// need to change constructors to include corpus TreeMap
+//		s = new Summerizer[docs.size()];
+//		for (int i = 0; i < s.length; i++) {
+//			System.out.println("Generating ArticleTopicNGramSum #" + (i+1));
+//			s[i] = new ArticleTopicNGramSum(docs.get(i),
+//					DEFAULT_MAX_SUMMARY_LENGTH);
+//		}
+//		summarizers.add(s);
 
-		/*
-		 * // need to change constructors to include corpus TreeMap
-		 * 
-		 * s = new Summerizer[docs.size()]; for (int i = 0; i < s.length; i++) {
-		 * s[i] = new ArticleTopicNGramSum(docs.get(i),
-		 * DEFAULT_MAX_SUMMARY_LENGTH); } summarizers.add(s);
-		 * 
-		 * // s = new Summerizer[docs.size()]; // for (int i = 0; i < s.length;
-		 * i++) { // s[i] = new NeFreqBasedSum(docs.get(i),
-		 * DEFAULT_MAX_SUMMARY_LENGTH); // } // summarizers.add(s);
-		 * 
-		 * s = new Summerizer[docs.size()]; for (int i = 0; i < s.length; i++) {
-		 * s[i] = new MostProbSentBasedOnTopicDocProb(docs.get(i),
-		 * DEFAULT_MAX_SUMMARY_LENGTH); } summarizers.add(s);
-		 */
+//		s = new Summerizer[docs.size()];
+//		for (int i = 0; i < s.length; i++) {
+//			System.out.println("Generating NeFreqBasedSum #" + (i+1));
+//			s[i] = new NeFreqBasedSum(docs.get(i), DEFAULT_MAX_SUMMARY_LENGTH);
+//		}
+//		summarizers.add(s);
 
-		// s = new Summerizer[docs.size()];
-		// // TODO I think this array has the topic ngrams for each documents
-		// // infered topic. In the same order as the doc
-		// for (int i = 0; i < s.length; i++) {
-		// s[i] = new MostProbSentSimpleGreedy(docs.get(i),
-		// DEFAULT_MAX_SUMMARY_LENGTH, probs.get(0)[i]);
-		// } // Doc doc, int summaryLength, NGramProbs corpusNgramsAndProbs
-		// summarizers.add(s);
+//		s = new Summerizer[docs.size()];
+//		for (int i = 0; i < s.length; i++) {
+//			System.out.println("Generating MostProbSentBasedOnTopicDocProb #" + (i+1));
+//			s[i] = new MostProbSentBasedOnTopicDocProb(docs.get(i),
+//					DEFAULT_MAX_SUMMARY_LENGTH);
+//		}
+//		summarizers.add(s);
 
 		CorpusCounts counts;
 		try {
@@ -323,6 +342,7 @@ public class main {
 
 		s = new Summerizer[docs.size()];
 		for (int i = 0; i < s.length; i++) {
+			System.out.println("Generating FeatureBased #" + (i+1));
 			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
 			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
 			s[i] = new FeatureBasedSummary(docs.get(i),
@@ -332,6 +352,17 @@ public class main {
 
 		s = new Summerizer[docs.size()];
 		for (int i = 0; i < s.length; i++) {
+			System.out.println("Generating FeatureBased_Sent #" + (i+1));
+			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
+			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
+			s[i] = new FeatureBasedSummary_Sent(docs.get(i),
+					DEFAULT_MAX_SUMMARY_LENGTH, probs[i], tf_idf, lda);
+		}
+		summarizers.add(s);
+
+		s = new Summerizer[docs.size()];
+		for (int i = 0; i < s.length; i++) {
+			System.out.println("Generating FeatureBased_BagOfWords #" + (i+1));
 			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
 			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
 			s[i] = new FeatureBasedSummary_BagOfWords(docs.get(i),
@@ -339,14 +370,13 @@ public class main {
 		}
 		summarizers.add(s);
 
-		// for (NGramProbs[] prob : probs) {
-		// s = new Summerizer[docs.size()];
-		// for (int i = 0; i < s.length; i++) {
-		// s[i] = new MostProbSentSimpleGreedy(docs.get(i),
-		// DEFAULT_MAX_SUMMARY_LENGTH, prob[i]);
-		// }
-		// summarizers.add(s);
-		// }
+//		s = new Summerizer[docs.size()];
+//		for (int i = 0; i < s.length; i++) {
+//			System.out.println("Generating MostProbSentSimpleGreedy #" + (i+1));
+//			s[i] = new MostProbSentSimpleGreedy(docs.get(i),
+//					DEFAULT_MAX_SUMMARY_LENGTH, probs[i]);
+//		}
+//		summarizers.add(s);
 
 		return summarizers;
 	}

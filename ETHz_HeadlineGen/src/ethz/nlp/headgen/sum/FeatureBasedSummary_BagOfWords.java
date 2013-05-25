@@ -1,5 +1,6 @@
 package ethz.nlp.headgen.sum;
 
+import java.util.NoSuchElementException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -9,6 +10,7 @@ import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import ethz.nlp.headgen.Doc;
 import ethz.nlp.headgen.prob.NGramProbs;
+import ethz.nlp.headgen.sum.FeatureBasedSummary.EntityEntry;
 import ethz.nlp.headgen.sum.features.Feature;
 
 public class FeatureBasedSummary_BagOfWords extends FeatureBasedSummary {
@@ -29,14 +31,27 @@ public class FeatureBasedSummary_BagOfWords extends FeatureBasedSummary {
 		SortedSet<WordEntry> topWords = getScoredWords();
 		String topVerb = getTopVerb(topWords);
 		SortedSet<EntityEntry>[] topEntities = getTopEntities();
-
-		String subjectEntity = topEntities[0].first().entity;
+		
+		String subjectEntity = null;
+		if (topEntities[0] == null) {
+			// TODO: Get next best subject
+		} else {
+			try {
+				subjectEntity = topEntities[0].first().entity;
+			} catch(NoSuchElementException e) {
+				//TODO: Get next best subject
+			}
+		}
+		
 		String objectEntity = null;
-
-		for (EntityEntry entry : topEntities[1]) {
-			if (!subjectEntity.equals(entry.entity)) {
-				objectEntity = entry.entity;
-				break;
+		if (subjectEntity == null) {
+			objectEntity = null;
+		} else {
+			for (EntityEntry entry : topEntities[1]) {
+				if (!subjectEntity.equals(entry.entity)) {
+					objectEntity = entry.entity;
+					break;
+				}
 			}
 		}
 
