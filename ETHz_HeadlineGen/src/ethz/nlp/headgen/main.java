@@ -157,23 +157,23 @@ public class main {
 
 		// Loading clusters
 		System.err.println("Loading doc clusters");
-//		DocCluster trainCluster = SerializableWrapper
-//				.readObject(DocCluster.CLUSTER_100_PATH);
+		DocCluster trainCluster = SerializableWrapper
+				.readObject(DocCluster.CLUSTER_100_PATH);
 
 		// Assign docs to clusters
 		System.err.println("Assigning docs to clusters");
-//		List<Integer> clusterAssign = m.assignDocClusters(inferredModel);
+		List<Integer> clusterAssign = m.assignDocClusters(inferredModel);
 
 		// Get a list of ngram probabilities for each document
 		System.err.println("Getting doc ngram probabilities");
-//		NGramProbs[] probs = m.genDocNGramProbs(clusterAssign, trainCluster);
+		NGramProbs[] probs = m.genDocNGramProbs(clusterAssign, trainCluster);
 
 //		System.err.println("Generating list of summarizers");
-//		List<Summerizer[]> summarizers = m.generateSummarizerList(m.documents,
-//				probs, inferredModel);
-		 List<Summerizer[]> summarizers =
-		 m.generateSummarizerList(m.documents,
-		 null, inferredModel);
+		List<Summerizer[]> summarizers = m.generateSummarizerList(m.documents,
+				probs, inferredModel);
+//		 List<Summerizer[]> summarizers =
+//		 m.generateSummarizerList(m.documents,
+//		 null, inferredModel);
 
 		Doc[][] summaries = new Doc[summarizers.size()][m.documents.size()];
 		for (int i = 0; i < m.documents.size(); i++) {
@@ -333,42 +333,42 @@ public class main {
 //		}
 //		summarizers.add(s);
 
-//		CorpusCounts counts;
-//		try {
-//			counts = SerializableWrapper.readObject(CorpusCounts.SAVE_PATH);
-//		} catch (IOException e) {
-//			throw new RuntimeException(e);
-//		}
-//
-//		s = new Summerizer[docs.size()];
-//		for (int i = 0; i < s.length; i++) {
-//			System.out.println("Generating FeatureBased #" + (i+1));
-//			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
-//			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
-//			s[i] = new FeatureBasedSummary(docs.get(i),
-//					DEFAULT_MAX_SUMMARY_LENGTH, probs[i], tf_idf, lda);
-//		}
-//		summarizers.add(s);
-//
-//		s = new Summerizer[docs.size()];
-//		for (int i = 0; i < s.length; i++) {
-//			System.out.println("Generating FeatureBased_Sent #" + (i+1));
-//			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
-//			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
-//			s[i] = new FeatureBasedSummary_Sent(docs.get(i),
-//					DEFAULT_MAX_SUMMARY_LENGTH, probs[i], tf_idf, lda);
-//		}
-//		summarizers.add(s);
-//
-//		s = new Summerizer[docs.size()];
-//		for (int i = 0; i < s.length; i++) {
-//			System.out.println("Generating FeatureBased_BagOfWords #" + (i+1));
-//			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
-//			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
-//			s[i] = new FeatureBasedSummary_BagOfWords(docs.get(i),
-//					DEFAULT_MAX_SUMMARY_LENGTH, probs[i], tf_idf, lda);
-//		}
-//		summarizers.add(s);
+		CorpusCounts counts;
+		try {
+			counts = SerializableWrapper.readObject(CorpusCounts.SAVE_PATH);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		s = new Summerizer[docs.size()];
+		for (int i = 0; i < s.length; i++) {
+			System.out.println("Generating FeatureBased #" + (i+1));
+			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
+			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
+			s[i] = new FeatureBasedSummary(docs.get(i),
+					DEFAULT_MAX_SUMMARY_LENGTH, probs[i], tf_idf, lda);
+		}
+		summarizers.add(s);
+
+		s = new Summerizer[docs.size()];
+		for (int i = 0; i < s.length; i++) {
+			System.out.println("Generating FeatureBased_Sent #" + (i+1));
+			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
+			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
+			s[i] = new FeatureBasedSummary_Sent(docs.get(i),
+					DEFAULT_MAX_SUMMARY_LENGTH, probs[i], tf_idf, lda);
+		}
+		summarizers.add(s);
+
+		s = new Summerizer[docs.size()];
+		for (int i = 0; i < s.length; i++) {
+			System.out.println("Generating FeatureBased_BagOfWords #" + (i+1));
+			Feature tf_idf = new Tf_IdfFeature(counts, docs.get(i));
+			Feature lda = new LDAFeature(inferredProbs, docs.get(i));
+			s[i] = new FeatureBasedSummary_BagOfWords(docs.get(i),
+					DEFAULT_MAX_SUMMARY_LENGTH, probs[i], tf_idf, lda);
+		}
+		summarizers.add(s);
 
 //		s = new Summerizer[docs.size()];
 //		for (int i = 0; i < s.length; i++) {
