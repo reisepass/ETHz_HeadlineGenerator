@@ -215,7 +215,7 @@ public class main {
 			}
 
 			// Write the summaries to disk
-			m.writeSummaries(docSums);
+			m.writeSummaries(docSums, summarizers.get(count)[0].getClass());
 
 			// Run the ROUGE script on the generated summaries and print the
 			// results
@@ -415,8 +415,8 @@ public class main {
 		}
 	}
 
-	private void writeSummaries(Doc[] documents) throws IOException {
-		File outputDir = new File(ioConf.getOutputDir());
+	private void writeSummaries(Doc[] documents, Class<? extends Summerizer> c) throws IOException {
+		File outputDir = new File(ioConf.getOutputDir() + "-" + c.getName());
 		if (!outputDir.exists()) {
 			if (outputDir.mkdirs()) {
 				throw new IOException("Unable to create the output directory: "
